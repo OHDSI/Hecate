@@ -1,0 +1,59 @@
+{
+  "dxt_version": "0.1",
+  "name": "Hecate MCP Server",
+  "version": "0.1.0",
+  "description": "MCP server for Hecate API - medical concept search and retrieval",
+  "author": {
+    "name": "Pantheon HDS",
+    "url": "https://hecate.pantheon-hds.com"
+  },
+  "homepage": " https://hecate.pantheon-hds.com",
+  "icon": "logo.png",
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/dist/index.js"
+      ],
+      "env": {}
+    }
+  },
+  "tools": [
+    {
+      "name": "search_concepts",
+      "description": "Search for OMOP Standardized Vocabulary concepts using text query. Returns medical concepts with similarity scores from over 100 vocabularies including SNOMED CT, ICD-10-CM, RxNorm, LOINC, and more."
+    },
+    {
+      "name": "get_concept_by_id",
+      "description": "Get detailed information about a specific OMOP concept by its unique concept ID. Returns concept metadata including name, domain, vocabulary, concept class, and validity dates."
+    },
+    {
+      "name": "get_concept_relationships",
+      "description": "Get related concepts for a specific OMOP concept. Returns relationships like 'Maps to', 'Subsumes', 'Is a', enabling navigation through concept hierarchies and cross-vocabulary mappings."
+    },
+    {
+      "name": "get_concept_phoebe",
+      "description": "Get PHOEBE-defined relationships for a specific OMOP concept. PHOEBE provides curated clinical relationships optimized for phenotype definitions and cohort building."
+    },
+    {
+      "name": "get_concept_definition",
+      "description": "Get the clinical definition from UMLS for a specific OMOP concept if available. Returns detailed descriptions to help understand the medical meaning and clinical context."
+    },
+    {
+      "name": "expand_concept_hierarchy",
+      "description": "Get the hierarchical structure of an OMOP concept including children and parents. Useful for exploring clinical taxonomies and building comprehensive phenotype definitions."
+    }
+  ],
+  "keywords": [
+    "OMOP",
+    "OHDSI",
+    "Medical Dictionary"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OHDSI/hecate"
+  }
+}

@@ -1,4 +1,4 @@
-# Hecate 
+# Hecate
 
 ![./ui/public/screenshot.png](./ui/public/screenshot.png)
 
@@ -30,6 +30,7 @@ If there is any interest in a basic docker compose sample setup with some limite
 ## Quick Start
 
 ### Frontend (hecate-ui)
+
 ```bash
 cd ui
 npm install
@@ -37,20 +38,28 @@ npm run dev
 ```
 
 ### API Backend (hecate-api)
+
 ```bash
 cd api
 cargo run
 ```
 
 ### Autocomplete Service (autocomplete)
+
 ```bash
 cd autocomplete
 cargo run
 ```
 
+## MCP Server
+
+An MCP (Model Context Protocol) server is available for integration with MCP-compatible tools. See
+the [mcp/README.md](./mcp/README.md) for more details.
+
 ## Tech
 
 The application uses:
+
 - **Frontend**: React 19 with TypeScript and Vite
 - **Backend**: Rust components with Actix
 - **Database**: PostgreSQL for vocabulary

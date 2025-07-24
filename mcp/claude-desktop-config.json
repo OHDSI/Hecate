@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "hecate": {
+      "command": "node",
+      "args": ["/path/to/hecate-mcp-server/dist/index.js"],
+      "env": {}
+    }
+  }
+}
