@@ -1,0 +1,6 @@
+.idea
+.claude
+*/target
+*/dist
+*/node_modules
+*/hashmap.txt

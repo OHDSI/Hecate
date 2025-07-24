@@ -1,10 +1,10 @@
 # Hecate 
 
-![./sample.png](./sample.png)
+![./ui/public/screenshot.png](./ui/public/screenshot.png)
 
 **Hecate is a semantic search engine for the OHDSI vocabulary**
 
-Try it out [here](https://hecate.pantheon-hds.com)
+Try it out online at [https://hecate.pantheon-hds.com](https://hecate.pantheon-hds.com)
 
 ## Overview
 
@@ -17,6 +17,7 @@ Hecate consists of three main components:
 ## Running Hecate locally
 
 **At the moment, it requires some effort (and then some more) to get the full setup running locally.**
+**There is work in progress for a fully functional friendly local install**
 
 You need:
 
