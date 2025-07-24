@@ -151,15 +151,3 @@ The server includes comprehensive error handling for:
 - Unexpected server errors
 
 All errors are properly formatted as MCP errors with appropriate error codes.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
-
-MIT License
