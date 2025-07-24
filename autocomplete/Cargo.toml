@@ -1,0 +1,13 @@
+[package]
+name = "autocomplete"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix-cors = "0.7.1"
+actix-web = "4.11.0"
+env_logger = "0.11.8"
+indicium = "0.6.5"
+log = "0.4.27"
+serde = { version = "1.0.219", features = ["derive"] }
+tokio = { version = "1.46.1", features = ["rt", "rt-multi-thread", "macros"] }
