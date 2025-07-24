@@ -1,0 +1,359 @@
+openapi: 3.0.3
+info:
+  title: Hecate API
+  description: Semantic search engine for the OHDSI vocabulary
+  version: 1.0.0
+  contact:
+    name: Hecate API
+    url: https://hecate.pantheon-hds.com
+servers:
+  - url: https://hecate.pantheon-hds.com
+    description: Production server
+  - url: http://localhost:8080
+    description: Local development server (main API)
+  - url: http://localhost:8081
+    description: Local development server (autocomplete)
+
+paths:
+  /api/search:
+    get:
+      summary: Search for concepts
+      description: Perform semantic search for medical concepts using text query with optional filtering by vocabulary, domain, concept class, and standardization status
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query string for medical concepts
+          schema:
+            type: string
+          example: "diabetes"
+        - name: vocabulary_id
+          in: query
+          required: false
+          description: Filter results by vocabulary ID (e.g. SNOMED, ICD10CM, RxNorm). Supports multiple values as comma-separated string.
+          schema:
+            type: string
+          examples:
+            single:
+              value: "SNOMED"
+              summary: Single vocabulary filter
+            multiple_comma_separated:
+              value: "SNOMED,ICD10CM"
+              summary: Multiple vocabulary filters (comma-separated)
+        - name: standard_concept
+          in: query
+          required: false
+          description: Filter by standard concept status (S = standard, C = classification, None = non-standard)
+          schema:
+            type: string
+          example: "S"
+        - name: domain_id
+          in: query
+          required: false
+          description: Filter results by domain ID (e.g. Condition, Drug, Procedure). Supports multiple values as comma-separated string.
+          schema:
+            type: string
+          examples:
+            single:
+              value: "Condition"
+              summary: Single domain filter
+            multiple_comma_separated:
+              value: "Condition,Drug"
+              summary: Multiple domain filters (comma-separated)
+        - name: concept_class_id
+          in: query
+          required: false
+          description: Filter results by concept class ID (e.g. Disorder). Supports multiple values as comma-separated string.
+          schema:
+            type: string
+          examples:
+            single:
+              value: "Disorder"
+              summary: Single concept class filter
+            multiple_comma_separated:
+              value: "Disorder,Clinical Finding"
+              summary: Multiple concept class filters (comma-separated)
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of results to return (default 100, max 150)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 150
+            default: 100
+          example: 50
+      responses:
+        '200':
+          description: Successful search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchResponse'
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /api/concepts/{id}:
+    get:
+      summary: Get concept by ID
+      description: Retrieve detailed information about a specific concept
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Concept ID
+          schema:
+            type: integer
+            format: int32
+          example: 201826
+      responses:
+        '200':
+          description: Concept details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Concept'
+        '404':
+          description: Concept not found
+        '500':
+          description: Internal server error
+
+  /api/concepts/{id}/relationships:
+    get:
+      summary: Get concept relationships
+      description: Retrieve relationships for a specific concept
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Concept ID
+          schema:
+            type: integer
+            format: int32
+          example: 201826
+      responses:
+        '200':
+          description: Concept relationships
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RelatedConcept'
+        '404':
+          description: Concept not found
+        '500':
+          description: Internal server error
+
+  /api/concepts/{id}/phoebe:
+    get:
+      summary: Get PHOEBE relationships
+      description: Retrieve PHOEBE relationships for a specific concept
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Concept ID
+          schema:
+            type: integer
+            format: int32
+          example: 201826
+      responses:
+        '200':
+          description: PHOEBE relationships
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RelatedConcept'
+        '404':
+          description: Concept not found
+        '500':
+          description: Internal server error
+
+  /api/concepts/{id}/definition:
+    get:
+      summary: Get concept definition
+      description: Retrieve UMLS definition for a specific concept
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Concept ID
+          schema:
+            type: integer
+            format: int32
+          example: 201826
+      responses:
+        '200':
+          description: Concept definition
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "A metabolic disorder characterized by high blood sugar levels"
+        '404':
+          description: Concept not found
+        '500':
+          description: Internal server error
+
+  /api/autocomplete:
+    get:
+      summary: Autocomplete suggestions
+      description: Get autocomplete suggestions for medical concept search
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Query string for autocomplete suggestions
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 256
+          example: "diab"
+      responses:
+        '200':
+          description: Autocomplete suggestions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  example: "diabetes mellitus"
+                maxItems: 10
+        '400':
+          description: Bad request - query too short or invalid
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    SearchResponse:
+      type: object
+      properties:
+        concept_name:
+          type: string
+          description: The name of the concept
+          example: "Type 2 diabetes mellitus"
+        concept_name_lower:
+          type: string
+          description: Lowercase version of the concept name
+          example: "type 2 diabetes mellitus"
+        score:
+          type: number
+          format: float
+          description: Similarity score for the search result
+          example: 0.85
+          nullable: true
+        concepts:
+          type: array
+          description: Array of related concepts
+          items:
+            $ref: '#/components/schemas/Concept'
+      required:
+        - concept_name
+        - concept_name_lower
+        - concepts
+
+    Concept:
+      type: object
+      properties:
+        concept_id:
+          type: integer
+          format: int32
+          description: Unique identifier for the concept
+          example: 201826
+        concept_name:
+          type: string
+          description: The name of the concept
+          example: "Type 2 diabetes mellitus"
+        domain_id:
+          type: string
+          description: The domain of the concept
+          example: "Condition"
+        vocabulary_id:
+          type: string
+          description: The vocabulary source
+          example: "SNOMED"
+        concept_class_id:
+          type: string
+          description: The class of the concept
+          example: "Clinical Finding"
+        standard_concept:
+          type: string
+          description: Whether this is a standard concept
+          example: "S"
+          nullable: true
+        concept_code:
+          type: string
+          description: The code for the concept in its vocabulary
+          example: "44054006"
+        invalid_reason:
+          type: string
+          description: Reason for invalidity if applicable
+          nullable: true
+        valid_start_date:
+          type: string
+          format: date
+          description: Start date of concept validity
+          example: "1970-01-01"
+          nullable: true
+        valid_end_date:
+          type: string
+          format: date
+          description: End date of concept validity
+          example: "2099-12-31"
+          nullable: true
+      required:
+        - concept_id
+        - concept_name
+        - domain_id
+        - vocabulary_id
+        - concept_class_id
+        - concept_code
+
+    RelatedConcept:
+      type: object
+      properties:
+        relationship_id:
+          type: string
+          description: The type of relationship
+          example: "Maps to"
+        concept_id:
+          type: integer
+          format: int32
+          description: ID of the related concept
+          example: 201826
+        concept_name:
+          type: string
+          description: Name of the related concept
+          example: "Diabetes mellitus"
+        vocabulary_id:
+          type: string
+          description: Vocabulary of the related concept
+          example: "SNOMED"
+      required:
+        - relationship_id
+        - concept_id
+        - concept_name
+        - vocabulary_id
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Concept not found"
+        code:
+          type: integer
+          description: Error code
+          example: 404

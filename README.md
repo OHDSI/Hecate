@@ -31,14 +31,14 @@ If there is any interest in a basic docker compose sample setup with some limite
 
 ### Frontend (hecate-ui)
 ```bash
-cd hecate-ui
+cd ui
 npm install
 npm run dev
 ```
 
 ### API Backend (hecate-api)
 ```bash
-cd hecate-api
+cd api
 cargo run
 ```
 
@@ -52,7 +52,7 @@ cargo run
 
 The application uses:
 - **Frontend**: React 19 with TypeScript and Vite
-- **Backend**: Rust components with Actix framework
+- **Backend**: Rust components with Actix
 - **Database**: PostgreSQL for vocabulary
 - **Vector DB**: Qdrant for semantic search embeddings
 

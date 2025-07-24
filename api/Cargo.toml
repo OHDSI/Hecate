@@ -1,0 +1,24 @@
+[package]
+name = "hecate-api"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix-cors = "0.7.1"
+actix-web = { version = "4.11.0" }
+async-openai = "0.29.0"
+chrono = { version = "0.4.41", features = ["serde" ] }
+confik = "0.14.0"
+deadpool-postgres = { version = "0.14.1", features = ["serde"] }
+derive_more =  { version = "2.0.1", features = ["full"] }
+dotenvy = "0.15.7"
+env_logger = "0.11.8"
+log = "0.4.27"
+qdrant-client = "1.15.0"
+reqwest = { version = "0.12.22", features = ["json"] }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.141"
+tokio-pg-mapper = "0.2.0"
+tokio-pg-mapper-derive = "0.2.0"
+tokio-postgres = { version = "0.7.13", features = ["with-chrono-0_4"] }
+uuid = { version = "1.17.0", features = ["v4", "serde"] }
