@@ -1,4 +1,5 @@
 mod api;
+mod concept_graph;
 mod config;
 mod db;
 mod domain;
@@ -7,10 +8,11 @@ mod errors;
 mod qdrant;
 mod umls;
 mod utils;
+mod validation;
 
 use crate::api::{
-    get_concept_by_id, get_concept_definition, get_concept_phoebe, get_concept_relationships,
-    search,
+    analyze_concept_set, get_concept_by_id, get_concept_definition, get_concept_phoebe,
+    get_concept_relationships, search,
 };
 use crate::config::Configs;
 use actix_cors::Cors;
@@ -49,10 +51,15 @@ async fn main() -> std::io::Result<()> {
     let state = create_state(&config).await.unwrap();
 
     HttpServer::new(move || {
-        let mut cors = Cors::default();
+        let mut cors = Cors::default()
+            .allowed_methods(vec!["GET", "POST", "OPTIONS"])
+            .allowed_headers(vec!["Content-Type", "Authorization"])
+            .max_age(3600);
+
         for origin in &config.cors_origins {
             cors = cors.allowed_origin(origin);
         }
+
         App::new()
             .wrap(cors)
             .service(search)
@@ -60,6 +67,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_concept_relationships)
             .service(get_concept_definition)
             .service(get_concept_phoebe)
+            .service(analyze_concept_set)
             .app_data(state.clone())
     })
     .bind(config.server_addr.clone())?

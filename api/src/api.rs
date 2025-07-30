@@ -3,9 +3,10 @@ use crate::embeddings::fetch_embeddings;
 use crate::errors::PgError;
 use crate::umls::get_umls_definition_from_nlm;
 use crate::utils::deserialize_string_or_vec;
+use crate::validation;
 use crate::{StateWrapper, db};
 use actix_web::web::{Data, Json, Query};
-use actix_web::{Error, HttpResponse, get, web};
+use actix_web::{Error, HttpResponse, get, post, web};
 use log::info;
 use qdrant_client::qdrant::condition::ConditionOneOf;
 use qdrant_client::qdrant::point_id::PointIdOptions;
@@ -29,6 +30,11 @@ struct Parameters {
     #[serde(default, deserialize_with = "deserialize_string_or_vec")]
     concept_class_id: Option<Vec<String>>,
     limit: Option<u64>,
+}
+
+#[derive(Deserialize)]
+struct ConceptSetValidationRequest {
+    concept_set: String,
 }
 
 #[get("/api/search")]
@@ -74,7 +80,7 @@ async fn search(
         } else {
             let limit = parameters.limit.unwrap_or(100);
             // Request more results from qdrant to account for filtering
-            let search_limit = std::cmp::min(limit * 3, 150);
+            let search_limit = 250;
             let recommendations = recommend(input.to_string(), client, search_limit).await;
             for sp in recommendations {
                 let mut concept: SearchResponse = SearchResponse::from(sp);
@@ -192,7 +198,7 @@ async fn create_response_from_vector_db_ids(
     let query_points_builder = QueryPointsBuilder::new(COLLECTION_NAME)
         .with_payload(true)
         .score_threshold(0.50)
-        .limit(150)
+        .limit(500)
         .query(recs.build());
     let neighbours = client.query(query_points_builder).await.unwrap().result;
     for retrieved_point in search_result {
@@ -360,4 +366,30 @@ fn filter_concepts(
             true
         })
         .collect()
+}
+
+#[post("/api/conceptsets/analyze")]
+async fn analyze_concept_set(
+    request: Json<ConceptSetValidationRequest>,
+    state: Data<StateWrapper>,
+) -> Result<HttpResponse, Error> {
+    info!("Received concept set analysis request");
+    let concept_set = &request.concept_set;
+
+    let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
+
+    let analysis_result = validation::analyze_concept_set(
+        concept_set,
+        &pg_client,
+        Some(&state.qdrant_client),
+        Some(&state.concept_index),
+    )
+    .await
+    .unwrap_or_else(|e| {
+        let mut error_result = validation::ValidationResult::new();
+        error_result.add_error(format!("Database error during analysis: {}", e));
+        error_result
+    });
+
+    Ok(HttpResponse::Ok().json(analysis_result.to_json()))
 }

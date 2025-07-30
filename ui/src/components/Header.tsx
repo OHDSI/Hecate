@@ -9,6 +9,7 @@ import {
   InfoOutlined,
   LoginOutlined,
   MenuOutlined,
+  WorkspacesOutlined,
 } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 
@@ -38,6 +39,18 @@ function HecateHeader() {
     {
       key: "2",
       label: (
+        <Link
+          to="/concept-sets"
+          style={{ fontSize: "large", fontFamily: "GFS Neohellenic" }}
+        >
+          Concept Sets
+        </Link>
+      ),
+      icon: <WorkspacesOutlined style={{ fontSize: "large" }} />,
+    },
+    {
+      key: "3",
+      label: (
         <div style={{ fontSize: "large", fontFamily: "GFS Neohellenic" }}>
           Map
         </div>
@@ -46,7 +59,7 @@ function HecateHeader() {
       disabled: true,
     },
     {
-      key: "3",
+      key: "4",
       label: (
         <div style={{ fontSize: "large", fontFamily: "GFS Neohellenic" }}>
           Login
@@ -56,7 +69,7 @@ function HecateHeader() {
       disabled: true,
     },
     {
-      key: "4",
+      key: "5",
       label: (
         <div
           onClick={() => setModalOpen(true)}
@@ -151,10 +164,7 @@ function HecateHeader() {
             <br />
           </a>
           Source code is available on GitHub{" "}
-          <a
-            href={"https://github.com/OHDSI/Hecate"}
-            target={"_blank"}
-          >
+          <a href={"https://github.com/OHDSI/Hecate"} target={"_blank"}>
             here
             <br />
           </a>

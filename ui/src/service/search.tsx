@@ -49,7 +49,7 @@ export const search = async (q: string): Promise<ConceptRow[]> => {
 
   const encodedQuery = encodeURIComponent(q);
   return client
-    .get<SearchResponse[]>(`/search?q=${encodedQuery}`)
+    .get<SearchResponse[]>(`/search?q=${encodedQuery}&limit=250`)
     .then((resp) => {
       return resp.data
         .filter((resp) => resp.concepts)
