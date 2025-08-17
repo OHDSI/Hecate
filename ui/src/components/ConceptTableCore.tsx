@@ -40,7 +40,9 @@ const ConceptTableCore: React.FC<ConceptTableCoreProps> = ({
   initialFilters,
 }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [filteredInfo, setFilteredInfo] = useState<Filters>(initialFilters || {});
+  const [filteredInfo, setFilteredInfo] = useState<Filters>(
+    initialFilters || {},
+  );
 
   const handleChange: OnChange = useCallback((_, filters) => {
     setFilteredInfo(filters);

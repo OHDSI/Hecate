@@ -1,14 +1,39 @@
 use confik::Configuration;
 use serde::Deserialize;
 
-#[derive(Default, Configuration, Clone)]
+fn deserialize_comma_separated<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    Ok(s.split(',').map(|s| s.trim().to_string()).collect())
+}
+
+#[derive(Configuration, Clone, Deserialize)]
 pub struct Configs {
     pub server_addr: String,
     pub qdrant_uri: String,
     pub vectordb_data_path: String,
+    #[serde(deserialize_with = "deserialize_comma_separated")]
     pub cors_origins: Vec<String>,
     #[confik(from = DbConfig)]
     pub pg: deadpool_postgres::Config,
+    pub cache_max_capacity: u64,
+    pub cache_ttl_days: u64,
+}
+
+impl Default for Configs {
+    fn default() -> Self {
+        Self {
+            server_addr: "127.0.0.1:8080".to_string(),
+            qdrant_uri: "http://localhost:6334".to_string(),
+            vectordb_data_path: "sample_data.txt".to_string(),
+            cors_origins: vec!["http://localhost:5173".to_string()],
+            pg: deadpool_postgres::Config::default(),
+            cache_max_capacity: 64,
+            cache_ttl_days: 21,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]

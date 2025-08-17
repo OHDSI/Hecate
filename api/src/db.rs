@@ -2,6 +2,7 @@ use crate::domain::{Concept, RelatedConcept};
 use crate::errors::PgError;
 use deadpool_postgres::Client;
 use log::info;
+use moka::future::Cache;
 use tokio_pg_mapper::FromTokioPostgresRow;
 
 pub async fn get_concept_name_by_number(
@@ -97,7 +98,7 @@ pub async fn get_descendant_concepts(
     concept_id: i32,
 ) -> Result<Vec<i32>, PgError> {
     info!("Getting descendant concepts for {}", &concept_id);
-    let stmt = include_str!("../sql/select_descendant_concepts.sql");
+    let stmt = include_str!("../sql/select_all_concept_descendants.sql");
     let stmt = client.prepare(stmt).await?;
 
     let results = client
@@ -220,4 +221,78 @@ pub async fn get_batch_mapped_concepts(
     }
 
     Ok(result)
+}
+
+pub async fn get_concept_children_cached(
+    client: &Client,
+    cache: &Cache<i32, Vec<Concept>>,
+    concept_id: i32,
+) -> Result<Vec<Concept>, PgError> {
+    // Check cache first
+    if let Some(cached_children) = cache.get(&concept_id).await {
+        return Ok(cached_children);
+    }
+
+    // Get from database
+    let children = get_concept_descendants(client, concept_id, 1).await?;
+
+    // Cache the result
+    cache.insert(concept_id, children.clone()).await;
+
+    Ok(children)
+}
+
+pub async fn get_concept_parents_cached(
+    client: &Client,
+    cache: &Cache<i32, Vec<Concept>>,
+    concept_id: i32,
+) -> Result<Vec<Concept>, PgError> {
+    // Check cache first
+    if let Some(cached_parents) = cache.get(&concept_id).await {
+        return Ok(cached_parents);
+    }
+
+    // Get from database
+    let parents = get_concept_ancestors(client, concept_id, 1).await?;
+
+    // Cache the result
+    cache.insert(concept_id, parents.clone()).await;
+
+    Ok(parents)
+}
+
+async fn get_concept_descendants(
+    client: &Client,
+    concept_id: i32,
+    levels_of_separation: i32,
+) -> Result<Vec<Concept>, PgError> {
+    let stmt = include_str!("../sql/select_concept_descendants.sql");
+    let stmt = client.prepare(stmt).await?;
+
+    let results = client
+        .query(&stmt, &[&concept_id, &levels_of_separation])
+        .await?
+        .iter()
+        .map(|row| Concept::from_row(row.clone()).unwrap())
+        .collect::<Vec<Concept>>();
+
+    Ok(results)
+}
+
+async fn get_concept_ancestors(
+    client: &Client,
+    concept_id: i32,
+    levels_of_separation: i32,
+) -> Result<Vec<Concept>, PgError> {
+    let stmt = include_str!("../sql/select_concept_ancestors.sql");
+    let stmt = client.prepare(stmt).await?;
+
+    let results = client
+        .query(&stmt, &[&concept_id, &levels_of_separation])
+        .await?
+        .iter()
+        .map(|row| Concept::from_row(row.clone()).unwrap())
+        .collect::<Vec<Concept>>();
+
+    Ok(results)
 }

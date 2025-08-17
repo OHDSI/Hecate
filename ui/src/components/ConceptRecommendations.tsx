@@ -23,15 +23,18 @@ const ConceptRecommendationsComponent: React.FC<
   // Create initial filters for pre-selection
   const initialFilters = useMemo(() => {
     const filters: any = {};
-    
+
     // Pre-select all returned vocabularies
-    if (recommendations.used_vocabularies && recommendations.used_vocabularies.length > 0) {
+    if (
+      recommendations.used_vocabularies &&
+      recommendations.used_vocabularies.length > 0
+    ) {
       filters.vocabulary_id = recommendations.used_vocabularies;
     }
-    
+
     // Pre-select only standard concepts
     filters.standard_concept = ["Standard"];
-    
+
     return filters;
   }, [recommendations.used_vocabularies]);
 

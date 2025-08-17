@@ -10,10 +10,11 @@ mod utils;
 mod validation;
 
 use crate::api::{
-    analyze_concept_set, get_concept_by_id, get_concept_definition, get_concept_phoebe,
-    get_concept_relationships, search,
+    analyze_concept_set, get_concept_by_id, get_concept_definition, get_concept_expand,
+    get_concept_phoebe, get_concept_relationships, search,
 };
 use crate::config::Configs;
+use crate::domain::{Concept, ExpandCacheKey, ExpandResponse};
 use actix_cors::Cors;
 use actix_web::web::Data;
 use actix_web::{App, HttpServer};
@@ -21,10 +22,12 @@ use confik::{Configuration, EnvSource};
 use deadpool_postgres::Pool;
 use dotenvy::dotenv;
 use log::{LevelFilter, info};
+use moka::future::Cache;
 use qdrant_client::Qdrant;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
+use std::time::Duration;
 use tokio_postgres::NoTls;
 use uuid::Uuid;
 
@@ -32,6 +35,9 @@ struct StateWrapper {
     concept_index: HashMap<String, Vec<Uuid>>,
     pg_pool: Pool,
     qdrant_client: Qdrant,
+    expand_cache: Cache<ExpandCacheKey, ExpandResponse>,
+    children_cache: Cache<i32, Vec<Concept>>,
+    parents_cache: Cache<i32, Vec<Concept>>,
 }
 
 #[actix_web::main]
@@ -66,6 +72,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_concept_relationships)
             .service(get_concept_definition)
             .service(get_concept_phoebe)
+            .service(get_concept_expand)
             .service(analyze_concept_set)
             .app_data(state.clone())
     })
@@ -93,10 +100,33 @@ async fn create_state(config: &Configs) -> Result<Data<StateWrapper>, Box<dyn Er
 
     let concept_index = load_concept_index(&config.vectordb_data_path)?;
 
+    info!(
+        "Initializing concept expansion cache (max_capacity: {}, ttl: {} days)",
+        config.cache_max_capacity, config.cache_ttl_days
+    );
+    let expand_cache = Cache::builder()
+        .max_capacity(config.cache_max_capacity)
+        .time_to_live(Duration::from_secs(config.cache_ttl_days * 24 * 60 * 60))
+        .build();
+
+    info!("Initializing children and parents caches");
+    let children_cache = Cache::builder()
+        .max_capacity(5000) // More entries for individual lookups
+        .time_to_live(Duration::from_secs(config.cache_ttl_days * 24 * 60 * 60))
+        .build();
+
+    let parents_cache = Cache::builder()
+        .max_capacity(5000) // More entries for individual lookups
+        .time_to_live(Duration::from_secs(config.cache_ttl_days * 24 * 60 * 60))
+        .build();
+
     let state = Data::new(StateWrapper {
         concept_index,
         pg_pool,
         qdrant_client,
+        expand_cache,
+        children_cache,
+        parents_cache,
     });
     info!("App data loaded");
     Ok(state)
