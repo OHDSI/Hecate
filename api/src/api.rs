@@ -1,3 +1,4 @@
+use crate::concept_graph::ConceptExpander;
 use crate::domain::SearchResponse;
 use crate::embeddings::fetch_embeddings;
 use crate::errors::PgError;
@@ -35,6 +36,12 @@ struct Parameters {
 #[derive(Deserialize)]
 struct ConceptSetValidationRequest {
     concept_set: String,
+}
+
+#[derive(Deserialize)]
+struct ExpandParams {
+    childlevels: Option<i32>,
+    parentlevels: Option<i32>,
 }
 
 #[get("/api/search")]
@@ -183,6 +190,33 @@ async fn get_concept_definition(
         .unwrap()
         .unwrap_or("No definition available".parse()?);
     Ok(HttpResponse::Ok().json(def))
+}
+
+#[get("/api/concepts/{id}/expand")]
+async fn get_concept_expand(
+    path: web::Path<i32>,
+    params: Query<ExpandParams>,
+    state: Data<StateWrapper>,
+) -> Result<HttpResponse, Error> {
+    let id = path.into_inner();
+    info!(
+        "Get concept {} expand with params: childlevels={:?}, parentlevels={:?}",
+        &id, params.childlevels, params.parentlevels
+    );
+
+    let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
+    let expand_response = ConceptExpander::expand(
+        &pg_client,
+        &state.expand_cache,
+        &state.children_cache,
+        &state.parents_cache,
+        id,
+        params.childlevels,
+        params.parentlevels,
+    )
+    .await?;
+
+    Ok(HttpResponse::Ok().json(expand_response))
 }
 
 async fn create_response_from_vector_db_ids(

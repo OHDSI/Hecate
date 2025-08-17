@@ -71,7 +71,6 @@ function ConceptView() {
       getConceptDefinition(id).then((resp) => {
         setDefinition(resp);
       });
-      getConceptExpand(id).then((resp) => console.log(resp));
     }
   }, [params]);
 

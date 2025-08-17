@@ -6,6 +6,7 @@
 *.swp
 *.swo
 *~
+ACTIX_AUTH_GUIDE.md
 
 # Logs
 logs/

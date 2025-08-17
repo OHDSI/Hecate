@@ -103,7 +103,6 @@ function HecateHeader() {
             }}
           >
             <MenuOutlined style={{ marginRight: "0.5em" }} />
-
             <Link key={23} to="/" style={{ color: "#F3F7FC" }}>
               Hecate
             </Link>
