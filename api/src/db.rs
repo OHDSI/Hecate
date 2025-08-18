@@ -93,24 +93,6 @@ pub async fn get_concept_name_by_string(
     Ok(results)
 }
 
-pub async fn get_descendant_concepts(
-    client: &Client,
-    concept_id: i32,
-) -> Result<Vec<i32>, PgError> {
-    info!("Getting descendant concepts for {}", &concept_id);
-    let stmt = include_str!("../sql/select_all_concept_descendants.sql");
-    let stmt = client.prepare(stmt).await?;
-
-    let results = client
-        .query(&stmt, &[&concept_id])
-        .await?
-        .iter()
-        .map(|row| row.get("concept_id"))
-        .collect::<Vec<i32>>();
-
-    Ok(results)
-}
-
 pub async fn get_batch_descendant_concepts(
     client: &Client,
     concept_ids: &[i32],
@@ -159,10 +141,7 @@ pub async fn get_batch_descendant_concepts(
         let ancestor_id: i32 = row.get("ancestor_concept_id");
         let descendant_id: i32 = row.get("concept_id");
 
-        result
-            .entry(ancestor_id)
-            .or_insert_with(Vec::new)
-            .push(descendant_id);
+        result.entry(ancestor_id).or_default().push(descendant_id);
     }
 
     Ok(result)
@@ -214,10 +193,7 @@ pub async fn get_batch_mapped_concepts(
         let source_id: i32 = row.get("source_concept_id");
         let mapped_id: i32 = row.get("mapped_concept_id");
 
-        result
-            .entry(source_id)
-            .or_insert_with(Vec::new)
-            .push(mapped_id);
+        result.entry(source_id).or_default().push(mapped_id);
     }
 
     Ok(result)

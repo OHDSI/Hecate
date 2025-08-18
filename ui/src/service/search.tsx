@@ -1,6 +1,5 @@
 import { ConceptRow, SearchResponse } from "../@types/data-source";
 import { createApiClient } from "../config/api";
-import axios from "axios";
 
 export const autocomplete = async (q: string): Promise<[string]> => {
   const client = createApiClient();

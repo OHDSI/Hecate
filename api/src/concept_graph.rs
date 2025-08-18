@@ -32,11 +32,11 @@ impl ConceptExpander {
         let mut expand_concept = ExpandConcept::from(concept);
 
         // Attach children if child_levels is specified and > 0
-        if let Some(levels) = child_levels {
-            if levels > 0 {
-                expand_concept =
-                    Self::attach_children(client, children_cache, expand_concept, levels).await?;
-            }
+        if let Some(levels) = child_levels
+            && levels > 0
+        {
+            expand_concept =
+                Self::attach_children(client, children_cache, expand_concept, levels).await?;
         }
 
         // If parent_levels is specified and > 0, build the parent hierarchy
@@ -200,7 +200,7 @@ impl ConceptExpander {
     fn count_concepts(concept_trees: &[ExpandConcept]) -> i32 {
         concept_trees
             .iter()
-            .map(|concept| Self::count_concept_recursive(concept))
+            .map(Self::count_concept_recursive)
             .sum()
     }
 
@@ -211,7 +211,7 @@ impl ConceptExpander {
             1 + concept
                 .children
                 .iter()
-                .map(|child| Self::count_concept_recursive(child))
+                .map(Self::count_concept_recursive)
                 .sum::<i32>()
         }
     }

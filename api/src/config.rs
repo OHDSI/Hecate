@@ -38,7 +38,7 @@ impl Default for Configs {
 
 #[derive(Debug, Deserialize)]
 #[serde(transparent)]
-struct DbConfig(deadpool_postgres::Config);
+pub struct DbConfig(deadpool_postgres::Config);
 
 impl From<DbConfig> for deadpool_postgres::Config {
     fn from(value: DbConfig) -> Self {

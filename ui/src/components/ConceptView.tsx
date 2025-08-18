@@ -5,7 +5,6 @@ import { Concept } from "../@types/data-source";
 import {
   getConceptById,
   getConceptDefinition,
-  getConceptExpand,
 } from "../service/concepts.tsx";
 import { useParams } from "react-router-dom";
 import {

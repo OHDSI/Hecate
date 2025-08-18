@@ -56,7 +56,9 @@ async fn search(
     let opt_existing = state.concept_index.get(lowercase_input.as_str());
     let mut to_return: Vec<SearchResponse> = Vec::new();
     let mut ids: Vec<String> = Vec::new();
-    if opt_existing.is_none() {
+    if let Some(existing) = opt_existing {
+        existing.iter().for_each(|x| ids.push(x.to_string()));
+    } else {
         info!("Nothing found in search index");
         let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
         let numeric_id = input.parse::<i32>();
@@ -125,11 +127,6 @@ async fn search(
             }
             return Ok(Json(to_return));
         }
-    } else {
-        opt_existing
-            .unwrap()
-            .iter()
-            .for_each(|x| ids.push(x.to_string()));
     }
     let mut points: Vec<PointId> = Vec::new();
     let mut recs = RecommendInputBuilder::default();
@@ -359,13 +356,12 @@ fn filter_concepts(
         .into_iter()
         .filter(|concept| {
             // Filter by vocabulary_id
-            if let Some(vocab_ids) = &parameters.vocabulary_id {
-                if !vocab_ids
+            if let Some(vocab_ids) = &parameters.vocabulary_id
+                && !vocab_ids
                     .iter()
                     .any(|id| id.eq_ignore_ascii_case(&concept.vocabulary_id))
-                {
-                    return false;
-                }
+            {
+                return false;
             }
 
             // Filter by standard_concept
@@ -378,23 +374,21 @@ fn filter_concepts(
             }
 
             // Filter by domain_id
-            if let Some(domain_ids) = &parameters.domain_id {
-                if !domain_ids
+            if let Some(domain_ids) = &parameters.domain_id
+                && !domain_ids
                     .iter()
                     .any(|id| id.eq_ignore_ascii_case(&concept.domain_id))
-                {
-                    return false;
-                }
+            {
+                return false;
             }
 
             // Filter by concept_class_id
-            if let Some(class_ids) = &parameters.concept_class_id {
-                if !class_ids
+            if let Some(class_ids) = &parameters.concept_class_id
+                && !class_ids
                     .iter()
                     .any(|id| id.eq_ignore_ascii_case(&concept.concept_class_id))
-                {
-                    return false;
-                }
+            {
+                return false;
             }
 
             true
