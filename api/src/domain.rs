@@ -45,8 +45,7 @@ impl From<ScoredPoint> for SearchResponse {
     fn from(item: ScoredPoint) -> Self {
         let payload = serde_json::to_string(&item.payload).unwrap();
         let res: Result<SearchResponse, _> = serde_json::from_str(&payload);
-        if res.is_ok() {
-            let mut concept: SearchResponse = res.unwrap();
+        if let Ok(mut concept) = res {
             concept.score = Some(item.score as f64);
             // Update concept_name to use standard concept name if available
             if let Some(standard_name) = concept.find_standard_concept_name() {

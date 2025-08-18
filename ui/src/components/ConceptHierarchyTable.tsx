@@ -27,9 +27,10 @@ export default function ConceptHierarchyTable(
       title: "code",
       dataIndex: "concept_code",
       key: "concept_code",
-      minWidth: 120,
+      minWidth: 110,
       responsive: full ? ["md"] : ["xxl"],
     },
+
     {
       title: "name",
       dataIndex: "concept_name",
@@ -47,6 +48,12 @@ export default function ConceptHierarchyTable(
         );
       },
       sorter: (a, b) => a.concept_name.localeCompare(b.concept_name),
+    },
+    {
+      title: "vocabulary",
+      dataIndex: "vocabulary_id",
+      key: "vocabulary_id",
+      minWidth: 120,
     },
     {
       title: "distance",

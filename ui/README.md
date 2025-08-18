@@ -77,7 +77,6 @@ To use local development endpoints, update the configuration in `src/config/api.
 
 ```typescript
 export const API_BASE_URL = "http://localhost:8080/api";
-export const API_V2_BASE_URL = "http://localhost:8081/v2";
 ```
 
 ## Project Structure

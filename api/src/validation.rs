@@ -258,21 +258,21 @@ pub async fn analyze_concept_set(
                 for item in &expression.items {
                     let concept_id = item.concept.concept_id;
 
-                    if item.include_descendants {
-                        if let Some(descendants) = descendants_map.get(&concept_id) {
-                            info!(
-                                "Found {} descendants for concept {}",
-                                descendants.len(),
-                                concept_id
-                            );
+                    if item.include_descendants
+                        && let Some(descendants) = descendants_map.get(&concept_id)
+                    {
+                        info!(
+                            "Found {} descendants for concept {}",
+                            descendants.len(),
+                            concept_id
+                        );
 
-                            if item.is_excluded {
-                                // Add descendants to excluded list
-                                concept_summary.excluded_descendants.extend(descendants);
-                            } else {
-                                // Add descendants to included list
-                                concept_summary.included_descendants.extend(descendants);
-                            }
+                        if item.is_excluded {
+                            // Add descendants to excluded list
+                            concept_summary.excluded_descendants.extend(descendants);
+                        } else {
+                            // Add descendants to included list
+                            concept_summary.included_descendants.extend(descendants);
                         }
                     }
                 }
@@ -299,21 +299,21 @@ pub async fn analyze_concept_set(
                 for item in &expression.items {
                     let concept_id = item.concept.concept_id;
 
-                    if item.include_mapped {
-                        if let Some(mapped) = mapped_map.get(&concept_id) {
-                            info!(
-                                "Found {} mapped concepts for concept {}",
-                                mapped.len(),
-                                concept_id
-                            );
+                    if item.include_mapped
+                        && let Some(mapped) = mapped_map.get(&concept_id)
+                    {
+                        info!(
+                            "Found {} mapped concepts for concept {}",
+                            mapped.len(),
+                            concept_id
+                        );
 
-                            if item.is_excluded {
-                                // Add mapped concepts to excluded list
-                                concept_summary.excluded_mapped.extend(mapped);
-                            } else {
-                                // Add mapped concepts to included list
-                                concept_summary.included_mapped.extend(mapped);
-                            }
+                        if item.is_excluded {
+                            // Add mapped concepts to excluded list
+                            concept_summary.excluded_mapped.extend(mapped);
+                        } else {
+                            // Add mapped concepts to included list
+                            concept_summary.included_mapped.extend(mapped);
                         }
                     }
                 }
@@ -361,7 +361,7 @@ pub async fn analyze_concept_set(
 
     // Generate recommendations if qdrant client and concept index are available
     if let (Some(qdrant), Some(index)) = (qdrant_client, concept_index) {
-        match get_concept_recommendations(&expression, pg_client, qdrant, index, 50).await {
+        match get_concept_recommendations(&expression, pg_client, qdrant, index).await {
             Ok(recommendations) => {
                 result.recommendations = Some(recommendations);
             }
@@ -525,7 +525,6 @@ async fn query_and_process_recommendations(
     top_level_included: &[&ConceptSetItem],
     allowed_domains: &HashSet<String>,
     concept_set_vocabularies: HashSet<String>,
-    limit_per_concept: u64,
 ) -> ConceptRecommendations {
     const COLLECTION_NAME: &str = "meddra";
     let mut all_recommendations = Vec::new();
@@ -533,7 +532,7 @@ async fn query_and_process_recommendations(
     let query_points_builder = QueryPointsBuilder::new(COLLECTION_NAME)
         .with_payload(true)
         .score_threshold(0.50)
-        .limit(500)
+        .limit(1000)
         .query(recommend_query);
 
     match qdrant_client.query(query_points_builder).await {
@@ -617,7 +616,6 @@ pub async fn get_concept_recommendations(
     pg_client: &Client,
     qdrant_client: &Qdrant,
     concept_index: &HashMap<String, Vec<Uuid>>,
-    limit_per_concept: u64,
 ) -> Result<ConceptRecommendations, PgError> {
     // Get all concepts that are already in the set (direct, descendants, excluded)
     let existing_concepts = get_all_concepts_in_set(expression, pg_client).await?;
@@ -694,7 +692,6 @@ pub async fn get_concept_recommendations(
         &top_level_included,
         &allowed_domains,
         concept_set_vocabularies,
-        limit_per_concept,
     )
     .await;
 

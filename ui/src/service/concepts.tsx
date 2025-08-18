@@ -3,7 +3,7 @@ import {
   ConceptExpandRow,
   RelatedConcept,
 } from "../@types/data-source";
-import { createApiClient, API_V2_BASE_URL } from "../config/api";
+import { createApiClient } from "../config/api";
 
 export const getConceptById = async (id: number): Promise<[Concept]> => {
   const client = createApiClient();
@@ -64,7 +64,7 @@ export const getConceptDefinition = async (id: number): Promise<string> => {
 export const getConceptExpand = async (
   id: number,
 ): Promise<ConceptExpandRow[]> => {
-  const client = createApiClient(API_V2_BASE_URL);
+  const client = createApiClient();
 
   return client
     .get<{ concepts: ConceptExpandRow[] }>(
