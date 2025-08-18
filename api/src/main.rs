@@ -1,4 +1,5 @@
 mod api;
+mod concept_graph;
 mod config;
 mod db;
 mod domain;
