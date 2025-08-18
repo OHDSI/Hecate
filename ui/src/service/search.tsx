@@ -3,9 +3,7 @@ import { createApiClient } from "../config/api";
 import axios from "axios";
 
 export const autocomplete = async (q: string): Promise<[string]> => {
-  const client = axios.create({
-    baseURL: "https://hecate.pantheon-hds.com/api",
-  });
+  const client = createApiClient();
 
   return client
     .get<[string]>(`/autocomplete?q=${q}`)

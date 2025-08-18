@@ -12,9 +12,12 @@ import { z } from "zod";
 import { HecateApiClient } from "./api-client.js";
 import { HecateApiConfig } from "./types.js";
 
+// API URLs
+const API_BASE_URL = "https://hecate.pantheon-hds.com/api";
+
 // Default configuration
 const DEFAULT_CONFIG: HecateApiConfig = {
-  baseUrl: "https://hecate.pantheon-hds.com/api",
+  baseUrl: API_BASE_URL,
   v2BaseUrl: "https://hecate.pantheon-hds.com/v2",
   timeout: 10000,
 };
