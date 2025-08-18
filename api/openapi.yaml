@@ -204,6 +204,51 @@ paths:
         '500':
           description: Internal server error
 
+  /api/concepts/{id}/expand:
+    get:
+      summary: Expand concept hierarchy
+      description: Get the hierarchical structure of a concept including children and parents at specified levels
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Concept ID to expand hierarchy for
+          schema:
+            type: integer
+            format: int32
+          example: 201826
+        - name: childlevels
+          in: query
+          required: false
+          description: Number of child levels to expand (default 5)
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 10
+            default: 5
+          example: 3
+        - name: parentlevels
+          in: query
+          required: false
+          description: Number of parent levels to expand (default 0)
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 10
+            default: 0
+          example: 2
+      responses:
+        '200':
+          description: Expanded concept hierarchy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpandResponse'
+        '404':
+          description: Concept not found
+        '500':
+          description: Internal server error
+
   /api/autocomplete:
     get:
       summary: Autocomplete suggestions
@@ -345,6 +390,83 @@ components:
         - concept_id
         - concept_name
         - vocabulary_id
+
+    ExpandResponse:
+      type: object
+      properties:
+        concepts:
+          type: array
+          description: Array of expanded concepts in hierarchical structure
+          items:
+            $ref: '#/components/schemas/ExpandConcept'
+        childlevel:
+          type: integer
+          description: Number of child levels expanded
+          example: 3
+          nullable: true
+        parentlevel:
+          type: integer
+          description: Number of parent levels expanded
+          example: 2
+          nullable: true
+        count:
+          type: integer
+          description: Total count of concepts in the expanded hierarchy
+          example: 42
+      required:
+        - concepts
+        - count
+
+    ExpandConcept:
+      type: object
+      properties:
+        concept_id:
+          type: integer
+          format: int32
+          description: Unique identifier for the concept
+          example: 201826
+        concept_name:
+          type: string
+          description: The name of the concept
+          example: "Type 2 diabetes mellitus"
+        domain_id:
+          type: string
+          description: The domain of the concept
+          example: "Condition"
+        vocabulary_id:
+          type: string
+          description: The vocabulary source
+          example: "SNOMED"
+        concept_class_id:
+          type: string
+          description: The class of the concept
+          example: "Clinical Finding"
+        concept_code:
+          type: string
+          description: The code for the concept in its vocabulary
+          example: "44054006"
+        invalid_reason:
+          type: string
+          description: Reason for invalidity if applicable
+          nullable: true
+        level:
+          type: integer
+          description: Level in the hierarchy (0 = root concept)
+          example: 1
+          nullable: true
+        children:
+          type: array
+          description: Child concepts in the hierarchy
+          items:
+            $ref: '#/components/schemas/ExpandConcept'
+      required:
+        - concept_id
+        - concept_name
+        - domain_id
+        - vocabulary_id
+        - concept_class_id
+        - concept_code
+        - children
 
     Error:
       type: object
