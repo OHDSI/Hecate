@@ -10,7 +10,6 @@ import {
 
 export class HecateApiClient {
   private client: AxiosInstance;
-  private v2Client: AxiosInstance;
   private config: HecateApiConfig;
 
   constructor(config: HecateApiConfig) {
@@ -18,14 +17,6 @@ export class HecateApiClient {
 
     this.client = axios.create({
       baseURL: config.baseUrl,
-      timeout: config.timeout || 10000,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    this.v2Client = axios.create({
-      baseURL: config.v2BaseUrl,
       timeout: config.timeout || 10000,
       headers: {
         "Content-Type": "application/json",
@@ -92,7 +83,7 @@ export class HecateApiClient {
     parentLevels: number = 0,
   ): Promise<ConceptExpandRow[]> {
     const response: AxiosResponse<{ concepts: ConceptExpandRow[] }> =
-      await this.v2Client.get(
+      await this.client.get(
         `/concepts/${id}/expand?childlevels=${childLevels}&parentlevels=${parentLevels}`,
       );
 
