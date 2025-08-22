@@ -48,6 +48,5 @@ export interface SearchOptions {
 
 export interface HecateApiConfig {
   baseUrl: string;
-  v2BaseUrl: string;
   timeout?: number;
 }
