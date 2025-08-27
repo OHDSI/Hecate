@@ -13,8 +13,8 @@ import { HecateApiClient } from "./api-client.js";
 import { HecateApiConfig } from "./types.js";
 
 // API URLs
-const API_BASE_URL = "http://localhost:8080/api";
-// const API_BASE_URL = "https://hecate.pantheon-hds.com/api";
+// const API_BASE_URL = "http://localhost:8080/api";
+const API_BASE_URL = "https://hecate.pantheon-hds.com/api";
 
 
 // Default configuration
