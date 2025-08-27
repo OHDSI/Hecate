@@ -6,6 +6,8 @@
 
 Try it out online at [https://hecate.pantheon-hds.com](https://hecate.pantheon-hds.com)
 
+or use the API [https://hecate.pantheon-hds.com/openapi/#/](https://hecate.pantheon-hds.com/openapi/#/)
+
 ## Overview
 
 Hecate consists of three main components:
