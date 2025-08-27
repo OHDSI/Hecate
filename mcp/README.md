@@ -108,8 +108,7 @@ Add the server to your Claude Desktop configuration:
 ## API Configuration
 
 By default, the server connects to:
-- Main API: `https://hecate.pantheon-hds.com/api`
-- V2 API: `https://hecate.pantheon-hds.com/v2`
+`https://hecate.pantheon-hds.com/api`
 
 To use a different API endpoint, modify the `DEFAULT_CONFIG` in `src/index.ts`.
 
@@ -141,13 +140,3 @@ npm run build
 ```bash
 npm test
 ```
-
-## Error Handling
-
-The server includes comprehensive error handling for:
-- Invalid input parameters (validated with Zod)
-- API connection errors
-- HTTP response errors
-- Unexpected server errors
-
-All errors are properly formatted as MCP errors with appropriate error codes.

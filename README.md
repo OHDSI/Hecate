@@ -53,8 +53,9 @@ cargo run
 
 ## MCP Server
 
-An MCP (Model Context Protocol) server is available for integration with MCP-compatible tools. See
-the [mcp/README.md](./mcp/README.md) for more details.
+An MCP (Model Context Protocol) server is available for integration with MCP-compatible tools. 
+You can connect your LLM with https://hecate.pantheon-hds.com/mcp/sse to try it out.
+To build and run locally see the [mcp/README.md](./mcp/README.md) for more details.
 
 ## Tech
 
