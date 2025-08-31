@@ -272,3 +272,23 @@ async fn get_concept_ancestors(
 
     Ok(results)
 }
+
+pub async fn map_to_standard(client: &Client, concept_id: i32) -> Result<Vec<Concept>, PgError> {
+    let stmt = include_str!("../sql/select_concepts_by_relation.sql");
+    let stmt = client.prepare(stmt).await?;
+
+    let results = client
+        .query(&stmt, &[&concept_id, &"Maps to"])
+        .await?
+        .iter()
+        .map(|row| Concept::from_row(row.clone()).unwrap())
+        .filter(|concept| {
+            concept
+                .standard_concept
+                .as_ref()
+                .is_some_and(|sc| sc.eq_ignore_ascii_case("S"))
+        })
+        .collect::<Vec<Concept>>();
+
+    Ok(results)
+}

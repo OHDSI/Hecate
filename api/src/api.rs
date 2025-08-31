@@ -1,5 +1,5 @@
 use crate::concept_graph::ConceptExpander;
-use crate::domain::SearchResponse;
+use crate::domain::{Concept, SearchResponse};
 use crate::embeddings::fetch_embeddings;
 use crate::errors::PgError;
 use crate::umls::get_umls_definition_from_nlm;
@@ -17,6 +17,7 @@ use qdrant_client::qdrant::{
 };
 use qdrant_client::{Qdrant, qdrant};
 use serde::Deserialize;
+use std::collections::HashMap;
 
 pub const COLLECTION_NAME: &str = "meddra";
 
@@ -44,11 +45,115 @@ struct ExpandParams {
     parentlevels: Option<i32>,
 }
 
-#[get("/api/search")]
-async fn search(
+#[get("/api/search_standard")]
+async fn search_standard(
     parameters: Query<Parameters>,
     state: Data<StateWrapper>,
 ) -> Result<Json<Vec<SearchResponse>>, Error> {
+    let limit = parameters.limit.unwrap_or(25) as usize;
+    let resp = search(
+        Query::from_query(&format!("q={}", parameters.q))?,
+        state.clone(),
+    )
+    .await;
+    let mut concept_map: HashMap<i32, (Concept, f64)> = HashMap::new();
+    let vecdd = resp.unwrap();
+    'outer: for sr in vecdd {
+        for concept in &sr.concepts {
+            if concept_map.len() >= limit {
+                break 'outer;
+            }
+            if concept
+                .standard_concept
+                .as_ref()
+                .is_some_and(|sc| sc.eq_ignore_ascii_case("S"))
+            {
+                let filtered_concepts = filter_concepts(vec![concept.clone()], &parameters);
+                if !filtered_concepts.is_empty() {
+                    let filtered_concept = &filtered_concepts[0];
+                    if let Some((_, existing_score)) = concept_map.get(&filtered_concept.concept_id)
+                    {
+                        if sr.score.unwrap() > *existing_score {
+                            concept_map.insert(
+                                filtered_concept.concept_id,
+                                (filtered_concept.clone(), sr.score.unwrap()),
+                            );
+                        }
+                    } else {
+                        concept_map.insert(
+                            filtered_concept.concept_id,
+                            (filtered_concept.clone(), sr.score.unwrap()),
+                        );
+                    }
+                }
+            } else {
+                let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
+                let standard_concepts = db::map_to_standard(&pg_client, concept.concept_id).await?;
+                let filtered_standard_concepts = filter_concepts(standard_concepts, &parameters);
+                for std_concept in filtered_standard_concepts {
+                    if let Some((_, existing_score)) = concept_map.get(&std_concept.concept_id) {
+                        if sr.score.unwrap() > *existing_score {
+                            concept_map
+                                .insert(std_concept.concept_id, (std_concept, sr.score.unwrap()));
+                        }
+                    } else {
+                        concept_map
+                            .insert(std_concept.concept_id, (std_concept, sr.score.unwrap()));
+                        if concept_map.len() >= limit {
+                            break 'outer;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    let mut grouped_concepts: HashMap<String, (f64, Vec<Concept>)> = HashMap::new();
+
+    for (concept, score) in concept_map.into_values() {
+        let name_lower = concept.concept_name.to_lowercase();
+
+        if let Some((existing_score, concepts)) = grouped_concepts.get_mut(&name_lower) {
+            if score > *existing_score {
+                *existing_score = score;
+            }
+            concepts.push(concept);
+        } else {
+            grouped_concepts.insert(name_lower, (score, vec![concept]));
+        }
+    }
+
+    let mut search_responses: Vec<SearchResponse> = grouped_concepts
+        .into_iter()
+        .map(|(name_lower, (score, concepts))| SearchResponse {
+            concept_name: concepts[0].concept_name.clone(),
+            concept_name_lower: name_lower,
+            score: Some(score),
+            concepts,
+        })
+        .collect();
+
+    search_responses.sort_by(|a, b| {
+        b.score
+            .partial_cmp(&a.score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    Ok(Json(search_responses))
+}
+
+#[get("/api/search")]
+async fn search_api(
+    parameters: Query<Parameters>,
+    state: Data<StateWrapper>,
+) -> Result<Json<Vec<SearchResponse>>, Error> {
+    Ok(Json(search(parameters, state).await?))
+}
+
+async fn search(
+    parameters: Query<Parameters>,
+    state: Data<StateWrapper>,
+) -> Result<Vec<SearchResponse>, Error> {
     let client = &state.qdrant_client;
     let input = parameters.q.trim();
     let lowercase_input = input.to_lowercase();
@@ -125,7 +230,7 @@ async fn search(
             if to_return.len() > limit as usize {
                 to_return.truncate(limit as usize);
             }
-            return Ok(Json(to_return));
+            return Ok(to_return);
         }
     }
     let mut points: Vec<PointId> = Vec::new();
@@ -222,7 +327,7 @@ async fn create_response_from_vector_db_ids(
     recs: RecommendInputBuilder,
     points: Vec<PointId>,
     parameters: &Parameters,
-) -> Result<Json<Vec<SearchResponse>>, Error> {
+) -> Result<Vec<SearchResponse>, Error> {
     let search_result = retrieve_point_from_db(client, points, COLLECTION_NAME).await;
     let limit = parameters.limit.unwrap_or(100);
     // Request more results from qdrant to account for filtering
@@ -291,7 +396,7 @@ async fn create_response_from_vector_db_ids(
         to_return.truncate(limit as usize);
     }
 
-    Ok(Json(to_return))
+    Ok(to_return)
 }
 
 async fn find_by_concept_name_lower(
