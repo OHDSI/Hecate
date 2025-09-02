@@ -8,5 +8,5 @@ SELECT concept_id,
        invalid_reason,
        valid_start_date,
        valid_end_date
-FROM cdm.concept
+FROM vocab_27_AUG_25.concept
 WHERE concept_id = $1
