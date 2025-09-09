@@ -112,7 +112,7 @@ pub async fn get_batch_descendant_concepts(
     let placeholders: Vec<String> = (1..=concept_ids.len()).map(|i| format!("${}", i)).collect();
     let sql = format!(
         "SELECT ancestor_concept_id, descendant_concept_id as concept_id
-         FROM cdm.concept_ancestor 
+         FROM vocab_27_AUG_25.concept_ancestor 
          WHERE ancestor_concept_id IN ({})
            AND min_levels_of_separation > 0",
         placeholders.join(", ")
@@ -163,7 +163,7 @@ pub async fn get_batch_mapped_concepts(
     let placeholders: Vec<String> = (1..=concept_ids.len()).map(|i| format!("${}", i)).collect();
     let sql = format!(
         "SELECT cr.concept_id_2 as source_concept_id, cr.concept_id_1 as mapped_concept_id
-         FROM cdm.concept_relationship cr
+         FROM vocab_27_AUG_25.concept_relationship cr
          WHERE cr.concept_id_2 IN ({})
            AND cr.relationship_id = 'Maps to' 
            AND cr.invalid_reason IS NULL",
