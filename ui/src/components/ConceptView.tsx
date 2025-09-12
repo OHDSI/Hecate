@@ -73,18 +73,18 @@ function ConceptView() {
   const tabItems: TabsProps["items"] = [
     {
       key: "1",
-      label: "Similar",
+      label: "Related Concepts",
       children: concept ? (
-        <ConceptTable searchTerm={concept.concept_name} full={false} />
+        <RelatedConceptsView conceptId={conceptId} phoebe={false} />
       ) : (
         <div>Loading ... </div>
       ),
     },
     {
       key: "2",
-      label: "Related Concepts",
+      label: "Similar",
       children: concept ? (
-        <RelatedConceptsView conceptId={conceptId} phoebe={false} />
+        <ConceptTable searchTerm={concept.concept_name} full={false} />
       ) : (
         <div>Loading ... </div>
       ),
