@@ -5,6 +5,7 @@ import { ConfigProvider, Layout } from "antd";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ConceptView from "./components/ConceptView.tsx";
 import ConceptSets from "./components/ConceptSets.tsx";
+import MappingResults from "./components/MappingResults.tsx";
 
 const router = createBrowserRouter([
   {
@@ -22,6 +23,10 @@ const router = createBrowserRouter([
   {
     path: "/concept-sets",
     element: <ConceptSets />,
+  },
+  {
+    path: "/mapping/results",
+    element: <MappingResults />,
   },
 ]);
 
