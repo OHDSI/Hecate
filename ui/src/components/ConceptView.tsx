@@ -2,10 +2,7 @@ import { Content } from "antd/es/layout/layout";
 import { Row, Table, TableProps, Tabs, TabsProps, Col, Card } from "antd";
 import { useEffect, useState } from "react";
 import { Concept } from "../@types/data-source";
-import {
-  getConceptById,
-  getConceptDefinition,
-} from "../service/concepts.tsx";
+import { getConceptById, getConceptDefinition } from "../service/concepts.tsx";
 import { useParams } from "react-router-dom";
 import {
   expandInvalidReasonAbbreviation,

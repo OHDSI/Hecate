@@ -1,0 +1,1103 @@
+[
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "FACTOR X/FACTOR IX PDR INJ/INFOPL 900/600IE FL",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 40753745,
+      "concept_name": "factor IX 600 UNT / factor X 600 UNT / Prothrombin 600 UNT Injectable Solution",
+      "concept_class_id": "Clinical Drug",
+      "vocabulary_id": "RxNorm Extension",
+      "type": "INCORRECT",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "Factor X",
+            "name_inferred": false,
+            "strength": "900 UNT",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 44785022,
+            "concept_name": "factor X",
+            "concept_class_id": "Ingredient",
+            "vocabulary_id": "RxNorm",
+            "type": "BROAD",
+            "rationale": "No exact match for 900 UNT dosage. Generic factor X is broader but preferred over incorrect dosage amounts.",
+            "validated_by": null
+          }
+        },
+        {
+          "input": {
+            "name": "Factor IX",
+            "name_inferred": false,
+            "strength": "600 UNT",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 36889193,
+            "concept_name": "factor IX 600 UNT",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm Extension",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Injection",
+      "brand": null,
+      "supplier": null,
+      "quantity": "1 FL",
+      "rationale": "This is a combination coagulation factor product containing Factor X (900 international units) and Factor IX (600 international units). The 'PDR INJ' indicates powder for injection, classified as injectable dose form. 'IE' represents international units (converted to UNT per RxNorm). 'FL' indicates one vial/flask quantity. 'INFOPL' appears to be additional product information but doesn't affect the core drug data extraction. Contains both factor IX and X but adds prothrombin component not in original; dosages don't exactly match (900/600IE vs 600 UNT each)"
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "Remifentanil Fresenius Kabi 1 mg, poeder voor concentraat voor oplossing voor injectie of infusie",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 36946983,
+      "concept_name": "remifentanil 1 MG Injectable Solution by Fresenius Kabi",
+      "concept_class_id": "Marketed Product",
+      "vocabulary_id": "RxNorm Extension",
+      "type": "EXACT",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "remifentanil",
+            "name_inferred": false,
+            "strength": "1 MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 35605373,
+            "concept_name": "remifentanil 1 MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Injectable Solution",
+      "brand": null,
+      "supplier": {
+        "name": "Fresenius Kabi",
+        "maps_to": {
+          "concept_id": 35128940,
+          "concept_name": "Fresenius Kabi",
+          "concept_class_id": "Supplier",
+          "vocabulary_id": "RxNorm Extension",
+          "type": "EXACT",
+          "rationale": "Exact match available from vocab",
+          "validated_by": null
+        }
+      },
+      "quantity": null,
+      "rationale": "Product contains remifentanil as the active ingredient with strength of 1 mg explicitly stated. Fresenius Kabi is identified as the supplier/manufacturer. The Dutch text 'poeder voor concentraat voor oplossing voor injectie of infusie' translates to 'powder for concentrate for solution for injection or infusion', indicating an injectable dose form. No brand name is present, and no specific quantity packaging information is provided."
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "BENZATHINEBENZYLPENICILLINE SDZ INJPDR 1,2ME+SV5ML",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 747514,
+      "concept_name": "penicillin G benzathine 1200000 UNT Injection",
+      "concept_class_id": "Clinical Drug",
+      "vocabulary_id": "RxNorm",
+      "type": "BROAD",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "benzathine benzylpenicillin",
+            "name_inferred": false,
+            "strength": "1.2 MEU",
+            "strength_inferred": true
+          },
+          "maps_to": {
+            "concept_id": 747513,
+            "concept_name": "penicillin G benzathine 1200000 UNT",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "1.2 MEU (million units) equals 1200000 UNT, exact dose match",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Injection",
+      "brand": null,
+      "supplier": {
+        "name": "SDZ",
+        "maps_to": {
+          "concept_id": 2021466,
+          "concept_name": "SBD",
+          "concept_class_id": "Supplier",
+          "vocabulary_id": "RxNorm Extension",
+          "type": "INCORRECT",
+          "rationale": "SDZ appears in drug name but not in supplier list. Neither SBD nor DDSA match well. SDZ (likely Sandoz) not listed as option.",
+          "validated_by": null
+        }
+      },
+      "quantity": "5 ML",
+      "rationale": "Extracted benzathine benzylpenicillin as the active ingredient from 'BENZATHINEBENZYLPENICILLINE'. SDZ identified as supplier (likely Sandoz). 'INJPDR' indicates injectable powder form. '1,2ME' interpreted as 1.2 mega units (MEU) strength. 'SV5ML' indicates solvent volume of 5ML for reconstitution. Original specifies injection powder 1.2ME (1,200,000 units) with 5ML solvent and manufacturer (SDZ), while matched concept only specifies dosage and injection form without powder formulation details"
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "DEXAMETHASON/CHLOORAMFENICOL/POLYMYXINE OORDRUPPEL",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 1234665,
+      "concept_name": "chloramphenicol / dexamethasone / polymyxin B Otic Solution",
+      "concept_class_id": "Clinical Drug Form",
+      "vocabulary_id": "RxNorm Extension",
+      "type": "EXACT",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "chloramphenicol",
+            "name_inferred": false,
+            "strength": null,
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 990069,
+            "concept_name": "chloramphenicol",
+            "concept_class_id": "Ingredient",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        },
+        {
+          "input": {
+            "name": "polymyxin",
+            "name_inferred": false,
+            "strength": null,
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 948582,
+            "concept_name": "polymyxin B",
+            "concept_class_id": "Ingredient",
+            "vocabulary_id": "RxNorm",
+            "type": "NARROW",
+            "rationale": "Polymyxin B is the most commonly used form of polymyxin in clinical practice, making it a reasonable narrow match for the general term 'polymyxin'",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Otic Solution",
+      "brand": null,
+      "supplier": null,
+      "quantity": null,
+      "rationale": "This is a Dutch pharmaceutical name for a triple combination ear drop containing dexamethasone (anti-inflammatory corticosteroid), chloramphenicol (antibiotic), and polymyxin (antibiotic). 'OORDRUPPEL' means 'ear drops' in Dutch. The ingredients are clearly identifiable despite slight spelling variations from English (DEXAMETHASON vs dexamethasone, CHLOORAMFENICOL vs chloramphenicol, POLYMYXINE vs polymyxin). No strengths, brand name, supplier, or quantity information is provided in the input text. Classified as specialized_cavity since ear drops are administered to a specific body cavity. Perfect match of all three active ingredients in otic solution form, without specific dosage constraints"
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "Pregabaline Reddy 100 mg harde capsules",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 2922960,
+      "concept_name": "pregabalin 100 MG Oral Capsule by Dr Reddy's",
+      "concept_class_id": "Marketed Product",
+      "vocabulary_id": "RxNorm Extension",
+      "type": "EXACT",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "pregabalin",
+            "name_inferred": false,
+            "strength": "100 MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 734355,
+            "concept_name": "pregabalin 100 MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Oral Capsule",
+      "brand": {
+        "name": "Pregabaline Reddy",
+        "maps_to": {
+          "concept_id": 43129385,
+          "concept_name": "PREGABALINE MYLAN",
+          "concept_class_id": "Brand Name",
+          "vocabulary_id": "RxNorm Extension",
+          "type": "INCORRECT",
+          "rationale": "Closest match with exact spelling 'PREGABALINE' but different manufacturer (Reddy vs Mylan)",
+          "validated_by": null
+        }
+      },
+      "supplier": {
+        "name": "Reddy",
+        "maps_to": {
+          "concept_id": 21019980,
+          "concept_name": "Dr Reddy's",
+          "concept_class_id": "Supplier",
+          "vocabulary_id": "RxNorm Extension",
+          "type": "EXACT",
+          "rationale": "The drug name contains 'Reddy' which directly matches 'Dr Reddy's', a known pharmaceutical manufacturer",
+          "validated_by": null
+        }
+      },
+      "quantity": null,
+      "rationale": "Extracted pregabalin as active ingredient (standardized spelling from 'Pregabaline'), 100 mg strength clearly stated, hard capsules indicate oral dose form, 'Pregabaline Reddy' appears to be brand name with 'Reddy' likely being the supplier/manufacturer, no quantity specified in input Matches exactly - same active ingredient (pregabalin), dosage (100 mg), dosage form (capsule), and manufacturer (Dr Reddy's)"
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "URSODEOXYCHOLZUUR SANDOZ TABLET 450MG",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 19107027,
+      "concept_name": "ursodiol 400 MG Oral Tablet",
+      "concept_class_id": "Clinical Drug",
+      "vocabulary_id": "RxNorm",
+      "type": "INCORRECT",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "ursodeoxycholic acid",
+            "name_inferred": false,
+            "strength": "450 MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 19112364,
+            "concept_name": "ursodiol 400 MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "INCORRECT",
+            "rationale": "Closest available dosage to 450 MG, but different strength makes it incorrect match",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Oral Tablet",
+      "brand": {
+        "name": "Sandoz",
+        "maps_to": {
+          "concept_id": 43132415,
+          "concept_name": "Sandoz",
+          "concept_class_id": "Supplier",
+          "vocabulary_id": "RxNorm Extension",
+          "type": "EXACT",
+          "rationale": "Exact match available from vocab",
+          "validated_by": null
+        }
+      },
+      "supplier": {
+        "name": "Sandoz",
+        "maps_to": {
+          "concept_id": 43132415,
+          "concept_name": "Sandoz",
+          "concept_class_id": "Supplier",
+          "vocabulary_id": "RxNorm Extension",
+          "type": "EXACT",
+          "rationale": "Exact match available from vocab",
+          "validated_by": null
+        }
+      },
+      "quantity": null,
+      "rationale": "Extracted ursodeoxycholzuur (Dutch for ursodeoxycholic acid) as the active ingredient with 450MG strength clearly stated. Sandoz is identified as both brand name and supplier. Tablet form classified as oral dose form. No quantity information provided in the input. Same active ingredient and dosage form but different strength (400mg vs 450mg)"
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "DICLOFENAC-NATRIUM ZETPIL 6,25MG",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 1235017,
+      "concept_name": "diclofenac 6.25 MG Rectal Suppository",
+      "concept_class_id": "Clinical Drug",
+      "vocabulary_id": "RxNorm Extension",
+      "type": "BROAD",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "diclofenac sodium",
+            "name_inferred": false,
+            "strength": "6.25 MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 1235016,
+            "concept_name": "diclofenac 6.25 MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm Extension",
+            "type": "BROAD",
+            "rationale": "Same dosage but missing sodium salt specification, making it more general than the original term",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Rectal Suppository",
+      "brand": null,
+      "supplier": null,
+      "quantity": null,
+      "rationale": "Extracted diclofenac sodium (natrium is Latin/Dutch for sodium) as active ingredient with 6.25 MG strength (converted decimal comma to period per RxNorm conventions). 'Zetpil' is Dutch for suppository, classified as specialized_cavity dose form for rectal administration. No brand name, supplier, or quantity information present. Exact dose and form match, but loses sodium salt specification"
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "BECLOMETASON/MESALAZINE KLYSMA 3MG/2G=100G FL",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 1234773,
+      "concept_name": "beclomethasone 0.00003 MG/MG / mesalamine 0.02 MG/MG Enema",
+      "concept_class_id": "Clinical Drug",
+      "vocabulary_id": "RxNorm Extension",
+      "type": "EXACT",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "beclomethasone",
+            "name_inferred": false,
+            "strength": "3 MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 1234999,
+            "concept_name": "beclomethasone 3 MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm Extension",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        },
+        {
+          "input": {
+            "name": "mesalamine",
+            "name_inferred": false,
+            "strength": "2 G",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 19090543,
+            "concept_name": "mesalamine 2000 MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "2 G equals 2000 MG, exact dose match",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Rectal Solution",
+      "brand": null,
+      "supplier": null,
+      "quantity": "100 G",
+      "rationale": "This is a combination rectal enema (klysma) containing beclomethasone 3mg and mesalamine 2g in a 100g bottle. Beclometason is the European name for beclomethasone. Mesalazine is the European name for mesalamine. Klysma indicates a rectal enema formulation, classified as specialized_cavity since it's administered into the rectal cavity. The strength ratio 3MG/2G corresponds to the two active ingredients in order. FL indicates bottle/flask packaging. KLYSMA indicates enema form, and 3mg/2g per 100g converts to 0.00003 mg/mg and 0.02 mg/mg concentrations"
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "FACTOR X P BEHRING INJPDR FLACON 600IE + SOLV 20ML",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 44027265,
+      "concept_name": "factor X 600 UNT",
+      "concept_class_id": "Clinical Drug Comp",
+      "vocabulary_id": "RxNorm Extension",
+      "type": "BROAD",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "factor X",
+            "name_inferred": false,
+            "strength": "600 UNT",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 44027265,
+            "concept_name": "factor X 600 UNT",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm Extension",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Injection",
+      "brand": {
+        "name": "Factor X P Behring",
+        "maps_to": {
+          "concept_id": 19000470,
+          "concept_name": "BeneFIX",
+          "concept_class_id": "Brand Name",
+          "vocabulary_id": "RxNorm",
+          "type": "INCORRECT",
+          "rationale": "Factor X P Behring is a coagulation factor product, similar therapeutic area to BeneFIX (Factor IX) but different specific factor. Botulism antitoxin is unrelated. Not listed suggestion: Factor X products like Coagadex would be more appropriate.",
+          "validated_by": null
+        }
+      },
+      "supplier": {
+        "name": "Behring",
+        "maps_to": {
+          "concept_id": 44024922,
+          "concept_name": "Behring",
+          "concept_class_id": "Supplier",
+          "vocabulary_id": "RxNorm Extension",
+          "type": "EXACT",
+          "rationale": "Exact match available from vocab",
+          "validated_by": null
+        }
+      },
+      "quantity": "1 vial with 20 ML solvent",
+      "rationale": "Extracted Factor X as the active ingredient with 600 IE (international units) strength. This is an injection powder (INJPDR) in a vial (FLACON) that comes with 20ML solvent (SOLV). Brand name is Factor X P Behring, supplier is Behring. Dose form is injectable as it's a powder for injection that needs reconstitution with the provided solvent. Matches the factor X and 600 unit strength, but loses specific formulation details (injection powder, solvent volume, brand name)"
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "BUPRENORFINE/NALOXON TABLET SUBLINGU 2,9/0,71MG",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 46287543,
+      "concept_name": "buprenorphine 2.9 MG / naloxone 0.71 MG Sublingual Tablet",
+      "concept_class_id": "Clinical Drug",
+      "vocabulary_id": "RxNorm",
+      "type": "EXACT",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "buprenorphine",
+            "name_inferred": false,
+            "strength": "2.9 MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 46287541,
+            "concept_name": "buprenorphine 2.9 MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        },
+        {
+          "input": {
+            "name": "naloxone",
+            "name_inferred": false,
+            "strength": "0.71 MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 46287542,
+            "concept_name": "naloxone 0.71 MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Sublingual Tablet",
+      "brand": null,
+      "supplier": null,
+      "quantity": null,
+      "rationale": "Extracted combination product with buprenorphine and naloxone. The 'SUBLINGU' indicates sublingual tablets which are placed under the tongue for mucosal absorption. Strengths 2.9MG and 0.71MG were parsed from the ratio format, converting decimal comma notation to standard format."
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "SYNJARDY TABLET FILMOMHULD 5/1000MG",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 46287691,
+      "concept_name": "empagliflozin 5 MG / metformin hydrochloride 1000 MG Oral Tablet [Synjardy]",
+      "concept_class_id": "Branded Drug",
+      "vocabulary_id": "RxNorm",
+      "type": "EXACT",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "empagliflozin",
+            "name_inferred": true,
+            "strength": "5 MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 46287678,
+            "concept_name": "empagliflozin 5 MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        },
+        {
+          "input": {
+            "name": "metformin hydrochloride",
+            "name_inferred": true,
+            "strength": "1000 MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 40164884,
+            "concept_name": "metformin hydrochloride 1000 MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Oral Tablet",
+      "brand": {
+        "name": "SYNJARDY",
+        "maps_to": {
+          "concept_id": 46287681,
+          "concept_name": "Synjardy",
+          "concept_class_id": "Brand Name",
+          "vocabulary_id": "RxNorm",
+          "type": "EXACT",
+          "rationale": "Exact match available from vocab",
+          "validated_by": null
+        }
+      },
+      "supplier": null,
+      "quantity": null,
+      "rationale": "SYNJARDY is a known brand name for a combination diabetes medication containing empagliflozin and metformin hydrochloride. The strength ratio 5/1000MG corresponds to 5mg empagliflozin and 1000mg metformin. Film-coated tablet indicates oral administration. Active ingredient names were inferred from the established brand name formulation."
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "GABLOFEN INJ/INFUSIEVLOEISTOF 2MG/ML WWSP 20ML",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 46287584,
+      "concept_name": "20 ML baclofen 2 MG/ML Injection [Gablofen]",
+      "concept_class_id": "Quant Branded Drug",
+      "vocabulary_id": "RxNorm",
+      "type": "EXACT",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "baclofen",
+            "name_inferred": true,
+            "strength": "2 MG/ML",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 715275,
+            "concept_name": "baclofen 2 MG/ML",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Injectable Solution",
+      "brand": {
+        "name": "Gablofen",
+        "maps_to": {
+          "concept_id": 40232507,
+          "concept_name": "Gablofen",
+          "concept_class_id": "Brand Name",
+          "vocabulary_id": "RxNorm",
+          "type": "EXACT",
+          "rationale": "Exact match available from vocab",
+          "validated_by": null
+        }
+      },
+      "supplier": null,
+      "quantity": "20 ML",
+      "rationale": "Gablofen is a brand name for baclofen injection. The text indicates this is an injection/infusion solution (INJ/INFUSIEVLOEISTOF) with strength 2MG/ML in a 20ML vial. The active ingredient baclofen is inferred from the brand name Gablofen. WWSP likely refers to packaging type. Perfect match for Gablofen brand, 2mg/ml concentration, 20ml volume injection"
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "METHYLSALICYLAAT/LEVOMENTHOL ZALF 100/100MG/G",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 1234348,
+      "concept_name": "menthol 0.1 MG/MG / methyl salicylate 0.1 MG/MG Topical Ointment",
+      "concept_class_id": "Clinical Drug",
+      "vocabulary_id": "RxNorm Extension",
+      "type": "EXACT",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "methyl salicylate",
+            "name_inferred": true,
+            "strength": "0.1 MG/MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 909577,
+            "concept_name": "methyl salicylate 0.1 MG/MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        },
+        {
+          "input": {
+            "name": "levomenthol",
+            "name_inferred": false,
+            "strength": "0.1 MG/MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 36879604,
+            "concept_name": "LEVOMENTHOL 0.1 MG/MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm Extension",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Topical Ointment",
+      "brand": null,
+      "supplier": null,
+      "quantity": null,
+      "rationale": "Extracted two active ingredients from Dutch pharmaceutical naming: METHYLSALICYLAAT (converted to English 'methyl salicylate') and LEVOMENTHOL. ZALF indicates ointment/topical preparation. The strength 100/100MG/G represents 100 MG/G for each ingredient respectively. Dose form classified as topical since ZALF refers to an ointment for skin application. Perfect match: same active ingredients (methylsalicylaat=methyl salicylate, levomenthol=menthol), same strengths (100mg/g=0.1 MG/MG), same dosage form (zalf=ointment)"
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "PREDNISOLON/NEOMYCINE OOGDRUPPELS 5,33/5MG/ML",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 1234444,
+      "concept_name": "neomycin 5 MG/ML / prednisolone 5.33 MG/ML Ophthalmic Solution",
+      "concept_class_id": "Clinical Drug",
+      "vocabulary_id": "RxNorm Extension",
+      "type": "EXACT",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "prednisolone",
+            "name_inferred": false,
+            "strength": "5.33 MG/ML",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 1235454,
+            "concept_name": "prednisolone 5.33 MG/ML",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm Extension",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        },
+        {
+          "input": {
+            "name": "neomycin",
+            "name_inferred": false,
+            "strength": "5 MG/ML",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 916437,
+            "concept_name": "neomycin 5 MG/ML",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Ophthalmic Solution",
+      "brand": null,
+      "supplier": null,
+      "quantity": null,
+      "rationale": "This is a combination eye drop product containing prednisolone (a corticosteroid) and neomycin (an antibiotic). 'OOGDRUPPELS' is Dutch for 'eye drops', indicating specialized cavity administration for ophthalmic use. The strength ratio 5,33/5MG/ML corresponds to the two ingredients in order: prednisolone 5.33 MG/ML and neomycin 5 MG/ML. The comma decimal separator was converted to period following American conventions."
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "PARACETAMOL/ASCORBINEZUUR POEDER V DRANK 500/50MG",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 1235061,
+      "concept_name": "acetaminophen 500 MG / ascorbic acid 50 MG Powder for Oral Solution",
+      "concept_class_id": "Clinical Drug",
+      "vocabulary_id": "RxNorm Extension",
+      "type": "EXACT",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "acetaminophen",
+            "name_inferred": true,
+            "strength": "500 MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 1127527,
+            "concept_name": "acetaminophen 500 MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        },
+        {
+          "input": {
+            "name": "ascorbic acid",
+            "name_inferred": true,
+            "strength": "50 MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 19080921,
+            "concept_name": "ascorbic acid 50 MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Powder for Oral Solution",
+      "brand": null,
+      "supplier": null,
+      "quantity": null,
+      "rationale": "This is a combination product with paracetamol (acetaminophen in American English) 500mg and ascorbinezuur (ascorbic acid in American English) 50mg. 'POEDER V DRANK' indicates powder for drink preparation, which is classified as oral dose form. The strength ratio 500/50MG corresponds to the two ingredients in order. Names were inferred to use American English pharmaceutical terminology."
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "OXOMEMAZINE/GUAIFENESINE STROOP 0,33/6,66MG/ML",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 1235104,
+      "concept_name": "guaifenesin 6.66 MG/ML / Oxomemazine 0.33 MG/ML Oral Suspension",
+      "concept_class_id": "Clinical Drug",
+      "vocabulary_id": "RxNorm Extension",
+      "type": "NARROW",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "oxomemazine",
+            "name_inferred": false,
+            "strength": "0.33 MG/ML",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 43135700,
+            "concept_name": "Oxomemazine 0.33 MG/ML",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm Extension",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        },
+        {
+          "input": {
+            "name": "guaifenesin",
+            "name_inferred": false,
+            "strength": "6.66 MG/ML",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 1235102,
+            "concept_name": "guaifenesin 6.66 MG/ML",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm Extension",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Oral Solution",
+      "brand": null,
+      "supplier": null,
+      "quantity": null,
+      "rationale": "Extracted combination product with oxomemazine and guaifenesin (standardized from 'GUAIFENESINE' to American English spelling). Strengths split according to ratio order: 0.33 MG/ML for oxomemazine and 6.66 MG/ML for guaifenesin. 'STROOP' indicates syrup formulation which is classified as oral dose form. Converted European decimal notation (comma) to standard decimal point notation. Matches both active ingredients and concentrations exactly, but specifies suspension while original states 'STROOP' (syrup)"
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "TRANEXAMINEZUUR BRUISTABLET 1G",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 1235121,
+      "concept_name": "tranexamic acid 1000 MG Effervescent Oral Tablet",
+      "concept_class_id": "Clinical Drug",
+      "vocabulary_id": "RxNorm Extension",
+      "type": "EXACT",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "tranexamic acid",
+            "name_inferred": false,
+            "strength": "1000 MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 35868807,
+            "concept_name": "tranexamic acid 1000 MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm Extension",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Effervescent Oral Tablet",
+      "brand": null,
+      "supplier": null,
+      "quantity": null,
+      "rationale": "Extracted tranexamic acid (English translation of Dutch 'tranexaminezuur') as the active ingredient with 1G strength converted to 1000 MG following RxNorm conventions. 'Bruistablet' indicates effervescent tablet which is an oral dose form. No brand name, supplier, or quantity information present."
+    }
+  },
+  {
+    "source": {
+      "concept_id": null,
+      "concept_name": "AMOXI/CLAV DUMEX DISPER TABLET 250/62,5MG",
+      "concept_class_id": null,
+      "vocabulary_id": null,
+      "country": null
+    },
+    "mapping_date": "2025-09-12",
+    "maps_to": {
+      "concept_id": 1235596,
+      "concept_name": "amoxicillin 250 MG / clavulanate 62.5 MG Disintegrating Oral Tablet",
+      "concept_class_id": "Clinical Drug",
+      "vocabulary_id": "RxNorm Extension",
+      "type": "EXACT",
+      "inferred": null,
+      "validated_by": null
+    },
+    "decomposition": {
+      "ingredients": [
+        {
+          "input": {
+            "name": "clavulanic acid",
+            "name_inferred": true,
+            "strength": "62.5 MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 19123586,
+            "concept_name": "clavulanate 62.5 MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "Perfect match - clavulanic acid and clavulanate refer to the same substance with identical 62.5 MG dosage",
+            "validated_by": null
+          }
+        },
+        {
+          "input": {
+            "name": "amoxicillin",
+            "name_inferred": true,
+            "strength": "250 MG",
+            "strength_inferred": false
+          },
+          "maps_to": {
+            "concept_id": 1713545,
+            "concept_name": "amoxicillin 250 MG",
+            "concept_class_id": "Clinical Drug Comp",
+            "vocabulary_id": "RxNorm",
+            "type": "EXACT",
+            "rationale": "Exact match available from vocab",
+            "validated_by": null
+          }
+        }
+      ],
+      "dose_form": "Effervescent Oral Tablet",
+      "brand": {
+        "name": "DUMEX",
+        "maps_to": {
+          "concept_id": 44023949,
+          "concept_name": "Dumex",
+          "concept_class_id": "Supplier",
+          "vocabulary_id": "RxNorm Extension",
+          "type": "EXACT",
+          "rationale": "Exact match available from vocab",
+          "validated_by": null
+        }
+      },
+      "supplier": null,
+      "quantity": null,
+      "rationale": "AMOXI/CLAV is a standard abbreviation for amoxicillin/clavulanic acid combination. The strength ratio 250/62.5MG corresponds to amoxicillin 250mg and clavulanic acid 62.5mg respectively. DUMEX is the brand name. DISPER TABLET indicates a dispersible tablet for oral administration. Perfect match for dosage (250/62.5mg) and form (dispersible/disintegrating tablet)"
+    }
+  }
+]
