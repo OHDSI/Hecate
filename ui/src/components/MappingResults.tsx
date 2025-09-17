@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Content } from "antd/es/layout/layout";
-import { Button, Table, Tag, Card, TableProps } from "antd";
+import {Button, Table, Tag, Card, TableProps, notification} from "antd";
 import type { ColumnsType } from "antd/es/table";
 import HecateHeader from "./Header.tsx";
 
@@ -37,7 +37,7 @@ interface MappingResult {
     type: string;
     inferred: string | null;
     validated_by: string | null;
-  };
+  } | null;
   decomposition: {
     ingredients: Array<{
       input: {
@@ -56,7 +56,10 @@ interface MappingResult {
         validated_by: string | null;
       };
     }>;
-    dose_form: string | null;
+    dose_form: {
+      name: string;
+      rationale: string | null;
+    } | null;
     brand: {
       name: string;
       maps_to: {
@@ -130,7 +133,8 @@ const useMappingFilters = () => {
 function MappingResults() {
   const [data, setData] = useState<MappingResult[]>([]);
   const [loading, setLoading] = useState(true);
-  // const [inputValue, setInputValue] = useState("");
+  const [drugName, setDrugName] = useState("");
+  const [drugCode, setDrugCode] = useState("");
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   const {
@@ -179,34 +183,39 @@ function MappingResults() {
     [createCountForFilter],
   );
 
-  // const openSuccessNotification = useCallback(() => {
-  //   notification.success({
-  //     message: "Input successfully submitted",
-  //     description: "Come back in 20 seconds to see the result",
-  //     placement: "topRight",
-  //   });
-  // }, []);
+  const openSuccessNotification = useCallback(() => {
+    notification.success({
+      message: "Input successfully submitted",
+      description: "Come back in 20 seconds to see the result",
+      placement: "topRight",
+    });
+  }, []);
 
-  // const submitMapping = useCallback((drug: string) => {
-  //   if (!drug.trim()) return;
-  //
-  //   fetch("http://localhost:8080/api/drug-mapping/map", {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify({ drug }),
-  //   }).catch((error) => {
-  //     console.error("Error mapping drug:", error);
-  //   });
-  //
-  //   openSuccessNotification();
-  //   setInputValue("");
-  // }, [openSuccessNotification]);
+  const submitMapping = useCallback((name: string, code: string) => {
+    if (!name.trim() && !code.trim()) return;
 
-  // const handleInputSubmit = useCallback(() => {
-  //   submitMapping(inputValue);
-  // }, [inputValue, submitMapping]);
+    fetch("http://localhost:8080/api/drug-mapping/map", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        "input": name,
+        "code": code
+      }),
+    }).catch((error) => {
+      console.error("Error mapping drug:", error);
+    });
+
+    openSuccessNotification();
+    setDrugName("");
+    setDrugCode("");
+  }, [openSuccessNotification]);
+
+  // @ts-ignore
+    const handleInputSubmit = useCallback(() => {
+    submitMapping(drugName, drugCode);
+  }, [drugName, drugCode, submitMapping]);
 
   useEffect(() => {
     // fetch("http://localhost:8080/api/drug-mapping")
@@ -259,16 +268,28 @@ function MappingResults() {
             <Table
               dataSource={[
                 {
-                  dose_form: record.decomposition.dose_form,
+                  ...record.decomposition.dose_form,
                   key: "dose-form",
                 },
               ]}
               columns={[
                 {
                   title: "dose form",
-                  dataIndex: "dose_form",
-                  key: "dose_form",
+                  dataIndex: "name",
+                  key: "dose_form_name",
+                  width: "65%",
                   render: (value) => value || "Not specified",
+                },
+                {
+                  title: "rationale",
+                  dataIndex: "rationale",
+                  key: "dose_form_rationale",
+                  render: (value) =>
+                    value ? (
+                      <div style={{ fontStyle: "italic" }}>{value}</div>
+                    ) : (
+                      "Not specified"
+                    ),
                 },
               ]}
               pagination={false}
@@ -333,7 +354,7 @@ function MappingResults() {
                   dataIndex: ["maps_to", "concept_name"],
                   key: "ingredient_maps_to",
                   width: "25%",
-                  render: (value, record: any) => (
+                  render: (value, record: any) => record.maps_to ? (
                     <a
                       href={`/concepts/${record.maps_to.concept_id}`}
                       target="_blank"
@@ -342,7 +363,7 @@ function MappingResults() {
                     >
                       {value}
                     </a>
-                  ),
+                  ) : "N/A",
                 },
                 {
                   title: "mapping type",
@@ -394,7 +415,7 @@ function MappingResults() {
                   dataIndex: ["maps_to", "concept_name"],
                   key: "brand_maps_to",
                   width: "25%",
-                  render: (value, record: any) => (
+                  render: (value, record: any) => record.maps_to ? (
                     <a
                       href={`/concepts/${record.maps_to.concept_id}`}
                       target="_blank"
@@ -403,7 +424,7 @@ function MappingResults() {
                     >
                       {value}
                     </a>
-                  ),
+                  ) : "N/A",
                 },
                 {
                   title: "mapping type",
@@ -454,7 +475,7 @@ function MappingResults() {
                   dataIndex: ["maps_to", "concept_name"],
                   key: "supplier_maps_to",
                   width: "25%",
-                  render: (value, record: any) => (
+                  render: (value, record: any) => record.maps_to ? (
                     <a
                       href={`/concepts/${record.maps_to.concept_id}`}
                       target="_blank"
@@ -463,7 +484,7 @@ function MappingResults() {
                     >
                       {value}
                     </a>
-                  ),
+                  ) : "N/A",
                 },
                 {
                   title: "mapping type",
@@ -497,19 +518,19 @@ function MappingResults() {
   };
 
   const columns: ColumnsType<MappingResult> = [
-    // {
-    //   title: "code",
-    //   dataIndex: ["source", "concept_id"],
-    //   key: "source_concept_id",
-    //   render: (value) => value || "N/A",
-    //   minWidth: 80,
-    //   align: "left",
-    //   sorter: (a, b) => {
-    //     const aValue = a.source.concept_id?.toString() || "";
-    //     const bValue = b.source.concept_id?.toString() || "";
-    //     return aValue.localeCompare(bValue);
-    //   },
-    // },
+    {
+      title: "code",
+      dataIndex: ["source", "concept_id"],
+      key: "source_concept_id",
+      render: (value) => value || "N/A",
+      minWidth: 80,
+      align: "left",
+      sorter: (a, b) => {
+        const aValue = a.source.concept_id?.toString() || "";
+        const bValue = b.source.concept_id?.toString() || "";
+        return aValue.localeCompare(bValue);
+      },
+    },
     {
       title: "source input",
       dataIndex: ["source", "concept_name"],
@@ -524,6 +545,7 @@ function MappingResults() {
       key: "maps_to_concept_id",
       minWidth: 105,
       align: "left",
+      render: (_value, record) => record.maps_to?.concept_id || "N/A",
       sorter: (a, b) =>
         (a.maps_to?.concept_id || 0) - (b.maps_to?.concept_id || 0),
     },
@@ -556,7 +578,7 @@ function MappingResults() {
       key: "target_concept_class_id",
       responsive: ["md"],
       minWidth: 140,
-
+      render: (_value, record) => record.maps_to?.concept_class_id || "N/A",
       filteredValue: filteredInfo.target_concept_class_id,
       filters: filterOptions.conceptClass,
       onFilter: (value, record) =>
@@ -568,6 +590,7 @@ function MappingResults() {
       key: "target_vocabulary_id",
       minWidth: 140,
       responsive: ["lg"],
+      render: (_value, record) => record.maps_to?.vocabulary_id || "N/A",
       filteredValue: filteredInfo.target_vocabulary_id,
       filters: filterOptions.vocabulary,
       onFilter: (value, record) =>
@@ -577,11 +600,11 @@ function MappingResults() {
       title: "type",
       dataIndex: ["maps_to", "type"],
       key: "mapping_type",
-      render: (type: string) => (
+      render: (type: string, record) => record.maps_to ? (
         <div style={{ textAlign: "center" }}>
           <Tag color={getTypeColor(type)}>{type}</Tag>
         </div>
-      ),
+      ) : "N/A",
       width: 90,
       align: "left",
       filteredValue: filteredInfo.mapping_type,
@@ -611,19 +634,50 @@ function MappingResults() {
             paddingTop: "3em",
           }}
         >
-          <div style={{ marginBottom: "24px" }}>
-            {/*<Input*/}
-            {/*  placeholder="Enter drug name to map..."*/}
-            {/*  value={inputValue}*/}
-            {/*  onChange={(e) => setInputValue(e.target.value)}*/}
-            {/*  onPressEnter={handleInputSubmit}*/}
-            {/*  size="large"*/}
-            {/*  style={{*/}
-            {/*    borderRadius: "8px",*/}
-            {/*    fontSize: "16px",*/}
-            {/*  }}*/}
-            {/*/>*/}
-          </div>
+          {/*<div style={{ marginBottom: "24px" }}>*/}
+          {/*  <div style={{ display: "flex", gap: "12px", alignItems: "flex-end" }}>*/}
+          {/*    <div style={{ flex: 0.5 }}>*/}
+          {/*      <div style={{ marginBottom: "8px", fontWeight: "500", textAlign: "left" }}>code</div>*/}
+          {/*      <Input*/}
+          {/*        placeholder="Enter code..."*/}
+          {/*        value={drugCode}*/}
+          {/*        onChange={(e) => setDrugCode(e.target.value)}*/}
+          {/*        size="large"*/}
+          {/*        style={{*/}
+          {/*          borderRadius: "8px",*/}
+          {/*          fontSize: "16px",*/}
+          {/*        }}*/}
+          {/*      />*/}
+          {/*    </div>*/}
+          {/*    <div style={{ flex: 2 }}>*/}
+          {/*      <div style={{ marginBottom: "8px", fontWeight: "500", textAlign: "left" }}>details</div>*/}
+          {/*      <Input*/}
+          {/*        placeholder="Enter details..."*/}
+          {/*        value={drugName}*/}
+          {/*        onChange={(e) => setDrugName(e.target.value)}*/}
+          {/*        onPressEnter={handleInputSubmit}*/}
+          {/*        size="large"*/}
+          {/*        style={{*/}
+          {/*          borderRadius: "8px",*/}
+          {/*          fontSize: "16px",*/}
+          {/*        }}*/}
+          {/*      />*/}
+          {/*    </div>*/}
+          {/*    <Button*/}
+          {/*      type="primary"*/}
+          {/*      size="large"*/}
+          {/*      onClick={handleInputSubmit}*/}
+          {/*      style={{*/}
+          {/*        borderRadius: "8px",*/}
+          {/*        height: "40px",*/}
+          {/*        paddingLeft: "24px",*/}
+          {/*        paddingRight: "24px",*/}
+          {/*      }}*/}
+          {/*    >*/}
+          {/*      map*/}
+          {/*    </Button>*/}
+          {/*  </div>*/}
+          {/*</div>*/}
           {(() => {
             const hasActiveFilters = Object.values(filteredInfo).some(
               (filter) => filter && filter.length > 0,
@@ -674,7 +728,7 @@ function MappingResults() {
             onChange={handleChange}
             expandable={{
               expandedRowRender,
-              expandRowByClick: true,
+              expandRowByClick: false,
             }}
             rowKey={(record, index) =>
               `${record.maps_to?.concept_id || "null"}-${index}`
