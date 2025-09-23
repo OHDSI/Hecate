@@ -146,7 +146,7 @@ function HecateHeader() {
             Suggestions to improve the experience of using Hecate are always
             welcome.
             <br />
-            The current vocabulary is the 30-AUG-24 release.
+            The current vocabulary is the 27-AUG-25 release.
           </div>
         </div>
         <img
