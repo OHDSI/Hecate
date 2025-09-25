@@ -40,6 +40,19 @@ paths:
             multiple_comma_separated:
               value: "SNOMED,ICD10CM"
               summary: Multiple vocabulary filters (comma-separated)
+        - name: exclude_vocabulary_id
+          in: query
+          required: false
+          description: Exclude results with specified vocabulary IDs (e.g. SNOMED, ICD10CM, RxNorm). Supports multiple values as comma-separated string.
+          schema:
+            type: string
+          examples:
+            single:
+              value: "ICD9CM"
+              summary: Exclude single vocabulary
+            multiple_comma_separated:
+              value: "ICD9CM,ICD9Proc"
+              summary: Exclude multiple vocabularies (comma-separated)
         - name: standard_concept
           in: query
           required: false
@@ -122,6 +135,19 @@ paths:
             multiple_comma_separated:
               value: "SNOMED,ICD10CM"
               summary: Multiple vocabulary filters (comma-separated)
+        - name: exclude_vocabulary_id
+          in: query
+          required: false
+          description: Exclude results with specified vocabulary IDs (e.g. SNOMED, ICD10CM, RxNorm). Supports multiple values as comma-separated string.
+          schema:
+            type: string
+          examples:
+            single:
+              value: "ICD9CM"
+              summary: Exclude single vocabulary
+            multiple_comma_separated:
+              value: "ICD9CM,ICD9Proc"
+              summary: Exclude multiple vocabularies (comma-separated)
         - name: domain_id
           in: query
           required: false
