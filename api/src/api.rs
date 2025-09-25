@@ -26,6 +26,8 @@ struct Parameters {
     q: String,
     #[serde(default, deserialize_with = "deserialize_string_or_vec")]
     vocabulary_id: Option<Vec<String>>,
+    #[serde(default, deserialize_with = "deserialize_string_or_vec")]
+    exclude_vocabulary_id: Option<Vec<String>>,
     standard_concept: Option<String>,
     #[serde(default, deserialize_with = "deserialize_string_or_vec")]
     domain_id: Option<Vec<String>>,
@@ -51,13 +53,18 @@ async fn search_standard(
     state: Data<StateWrapper>,
 ) -> Result<Json<Vec<SearchResponse>>, Error> {
     let limit = parameters.limit.unwrap_or(25) as usize;
+    let mut query_string = format!("q={}", parameters.q);
+    if let Some(exclude_vocab_ids) = &parameters.exclude_vocabulary_id {
+        let exclude_vocab_str = exclude_vocab_ids.join(",");
+        query_string.push_str(&format!("&exclude_vocabulary_id={}", exclude_vocab_str));
+    }
     let resp = search(
-        Query::from_query(&format!("q={}", parameters.q))?,
+        Query::from_query(&query_string)?,
         state.clone(),
     )
     .await;
     let mut concept_map: HashMap<i32, (Concept, f64)> = HashMap::new();
-    let vecdd = resp.unwrap();
+    let vecdd = resp?;
     'outer: for sr in vecdd {
         for concept in &sr.concepts {
             if concept_map.len() >= limit {
@@ -453,16 +460,22 @@ async fn recommend(input: String, client: &Qdrant, limit: u64) -> Vec<ScoredPoin
         .result
 }
 
-fn filter_concepts(
-    concepts: Vec<crate::domain::Concept>,
-    parameters: &Parameters,
-) -> Vec<crate::domain::Concept> {
+fn filter_concepts(concepts: Vec<Concept>, parameters: &Parameters) -> Vec<Concept> {
     concepts
         .into_iter()
         .filter(|concept| {
             // Filter by vocabulary_id
             if let Some(vocab_ids) = &parameters.vocabulary_id
                 && !vocab_ids
+                    .iter()
+                    .any(|id| id.eq_ignore_ascii_case(&concept.vocabulary_id))
+            {
+                return false;
+            }
+
+            // Exclude by vocabulary_id
+            if let Some(exclude_vocab_ids) = &parameters.exclude_vocabulary_id
+                && exclude_vocab_ids
                     .iter()
                     .any(|id| id.eq_ignore_ascii_case(&concept.vocabulary_id))
             {
