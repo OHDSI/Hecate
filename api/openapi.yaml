@@ -113,7 +113,7 @@ paths:
   /api/search_standard:
     get:
       summary: Search for standard concepts only
-      description: Perform semantic search that returns only standard concepts, mapping non-standard concepts to their standard equivalents via "Maps to" relationships
+      description: Perform semantic search across both concepts and synonyms and that returns only standard concepts, mapping non-standard concepts to their standard equivalents via "Maps to" relationships
       parameters:
         - name: q
           in: query
