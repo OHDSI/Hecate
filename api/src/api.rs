@@ -57,9 +57,6 @@ async fn process_search_results(
 ) -> Result<(), Error> {
     'outer: for sr in search_results {
         for concept in &sr.concepts {
-            if concept_map.len() >= limit {
-                break 'outer;
-            }
             if concept
                 .standard_concept
                 .as_ref()
@@ -77,10 +74,29 @@ async fn process_search_results(
                             );
                         }
                     } else {
-                        concept_map.insert(
-                            filtered_concept.concept_id,
-                            (filtered_concept.clone(), sr.score.unwrap()),
-                        );
+                        let score = sr.score.unwrap();
+                        if concept_map.len() < limit {
+                            concept_map.insert(
+                                filtered_concept.concept_id,
+                                (filtered_concept.clone(), score),
+                            );
+                        } else {
+                            // At limit, check if this score is higher than the lowest score
+                            let min_score = concept_map.values().map(|(_, s)| *s).fold(f64::INFINITY, f64::min);
+                            if score > min_score {
+                                // Remove the entry with the lowest score
+                                let min_concept_id = concept_map.iter()
+                                    .find(|(_, (_, s))| *s == min_score)
+                                    .map(|(id, _)| *id)
+                                    .unwrap();
+                                concept_map.remove(&min_concept_id);
+                                // Add the new entry
+                                concept_map.insert(
+                                    filtered_concept.concept_id,
+                                    (filtered_concept.clone(), score),
+                                );
+                            }
+                        }
                     }
                 }
             } else {
@@ -94,10 +110,22 @@ async fn process_search_results(
                                 .insert(std_concept.concept_id, (std_concept, sr.score.unwrap()));
                         }
                     } else {
-                        concept_map
-                            .insert(std_concept.concept_id, (std_concept, sr.score.unwrap()));
-                        if concept_map.len() >= limit {
-                            break 'outer;
+                        let score = sr.score.unwrap();
+                        if concept_map.len() < limit {
+                            concept_map.insert(std_concept.concept_id, (std_concept, score));
+                        } else {
+                            // At limit, check if this score is higher than the lowest score
+                            let min_score = concept_map.values().map(|(_, s)| *s).fold(f64::INFINITY, f64::min);
+                            if score > min_score {
+                                // Remove the entry with the lowest score
+                                let min_concept_id = concept_map.iter()
+                                    .find(|(_, (_, s))| *s == min_score)
+                                    .map(|(id, _)| *id)
+                                    .unwrap();
+                                concept_map.remove(&min_concept_id);
+                                // Add the new entry
+                                concept_map.insert(std_concept.concept_id, (std_concept, score));
+                            }
                         }
                     }
                 }
