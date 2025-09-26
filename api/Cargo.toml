@@ -17,7 +17,7 @@ log = "0.4.28"
 moka = { version = "0.12", features = ["future"] }
 qdrant-client = "1.15.0"
 reqwest = { version = "0.12.23", features = ["json"] }
-serde = { version = "1.0.226", features = ["derive"] }
+serde = { version = "1.0.227", features = ["derive"] }
 serde_json = "1.0.145"
 tokio-pg-mapper = "0.2.0"
 tokio-pg-mapper-derive = "0.2.0"

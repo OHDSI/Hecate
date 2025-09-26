@@ -1,4 +1,4 @@
-use crate::api::COLLECTION_NAME;
+use crate::api::CONCEPT_COLLECTION;
 use log::info;
 use qdrant_client::Qdrant;
 use qdrant_client::qdrant::point_id::PointIdOptions;
@@ -15,7 +15,7 @@ fn rem_first_and_last(value: &str) -> &str {
 }
 
 pub async fn get_all_id_value_pairs(client: &Qdrant) -> Vec<(Uuid, String)> {
-    let points = get_all_points(client, COLLECTION_NAME).await;
+    let points = get_all_points(client, CONCEPT_COLLECTION).await;
     let mut pairs: Vec<(Uuid, String)> = Vec::new();
     for point in points {
         let index: PointIdOptions = point.clone().id.unwrap().point_id_options.unwrap();
