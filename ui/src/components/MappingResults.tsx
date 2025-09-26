@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Content } from "antd/es/layout/layout";
-import {Button, Table, Tag, Card, TableProps, notification} from "antd";
+import { Button, Table, Tag, Card, TableProps, notification } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import HecateHeader from "./Header.tsx";
 
@@ -191,29 +191,32 @@ function MappingResults() {
     });
   }, []);
 
-  const submitMapping = useCallback((name: string, code: string) => {
-    if (!name.trim() && !code.trim()) return;
+  const submitMapping = useCallback(
+    (name: string, code: string) => {
+      if (!name.trim() && !code.trim()) return;
 
-    fetch("http://localhost:8080/api/drug-mapping/map", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        "input": name,
-        "code": code
-      }),
-    }).catch((error) => {
-      console.error("Error mapping drug:", error);
-    });
+      fetch("http://localhost:8080/api/drug-mapping/map", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          input: name,
+          code: code,
+        }),
+      }).catch((error) => {
+        console.error("Error mapping drug:", error);
+      });
 
-    openSuccessNotification();
-    setDrugName("");
-    setDrugCode("");
-  }, [openSuccessNotification]);
+      openSuccessNotification();
+      setDrugName("");
+      setDrugCode("");
+    },
+    [openSuccessNotification],
+  );
 
   // @ts-ignore
-    const handleInputSubmit = useCallback(() => {
+  const handleInputSubmit = useCallback(() => {
     submitMapping(drugName, drugCode);
   }, [drugName, drugCode, submitMapping]);
 
@@ -354,16 +357,19 @@ function MappingResults() {
                   dataIndex: ["maps_to", "concept_name"],
                   key: "ingredient_maps_to",
                   width: "25%",
-                  render: (value, record: any) => record.maps_to ? (
-                    <a
-                      href={`/concepts/${record.maps_to.concept_id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: "#01452c" }}
-                    >
-                      {value}
-                    </a>
-                  ) : "N/A",
+                  render: (value, record: any) =>
+                    record.maps_to ? (
+                      <a
+                        href={`/concepts/${record.maps_to.concept_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#01452c" }}
+                      >
+                        {value}
+                      </a>
+                    ) : (
+                      "N/A"
+                    ),
                 },
                 {
                   title: "mapping type",
@@ -415,16 +421,19 @@ function MappingResults() {
                   dataIndex: ["maps_to", "concept_name"],
                   key: "brand_maps_to",
                   width: "25%",
-                  render: (value, record: any) => record.maps_to ? (
-                    <a
-                      href={`/concepts/${record.maps_to.concept_id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: "#01452c" }}
-                    >
-                      {value}
-                    </a>
-                  ) : "N/A",
+                  render: (value, record: any) =>
+                    record.maps_to ? (
+                      <a
+                        href={`/concepts/${record.maps_to.concept_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#01452c" }}
+                      >
+                        {value}
+                      </a>
+                    ) : (
+                      "N/A"
+                    ),
                 },
                 {
                   title: "mapping type",
@@ -475,16 +484,19 @@ function MappingResults() {
                   dataIndex: ["maps_to", "concept_name"],
                   key: "supplier_maps_to",
                   width: "25%",
-                  render: (value, record: any) => record.maps_to ? (
-                    <a
-                      href={`/concepts/${record.maps_to.concept_id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: "#01452c" }}
-                    >
-                      {value}
-                    </a>
-                  ) : "N/A",
+                  render: (value, record: any) =>
+                    record.maps_to ? (
+                      <a
+                        href={`/concepts/${record.maps_to.concept_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#01452c" }}
+                      >
+                        {value}
+                      </a>
+                    ) : (
+                      "N/A"
+                    ),
                 },
                 {
                   title: "mapping type",
@@ -600,11 +612,14 @@ function MappingResults() {
       title: "type",
       dataIndex: ["maps_to", "type"],
       key: "mapping_type",
-      render: (type: string, record) => record.maps_to ? (
-        <div style={{ textAlign: "center" }}>
-          <Tag color={getTypeColor(type)}>{type}</Tag>
-        </div>
-      ) : "N/A",
+      render: (type: string, record) =>
+        record.maps_to ? (
+          <div style={{ textAlign: "center" }}>
+            <Tag color={getTypeColor(type)}>{type}</Tag>
+          </div>
+        ) : (
+          "N/A"
+        ),
       width: 90,
       align: "left",
       filteredValue: filteredInfo.mapping_type,

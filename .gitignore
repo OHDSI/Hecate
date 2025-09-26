@@ -63,3 +63,6 @@ coverage/
 # Temp
 tmp/
 temp/
+
+# Random stuff
+scripts

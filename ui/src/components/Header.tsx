@@ -140,8 +140,8 @@ function HecateHeader() {
           <div>
             Hecate is a semantic search engine for the OHDSI vocabulary.
             <br /> It uses LLM embeddings and cosine similarity to provide
-            relevant search results and aims to provide a user friendly search
-            experience that is intuitive and silky smooth.
+            search results and aims to provide a user friendly search experience
+            that is intuitive and silky smooth.
             <br />
             Suggestions to improve the experience of using Hecate are always
             welcome.
@@ -167,6 +167,9 @@ function HecateHeader() {
             here
             <br />
           </a>
+          This public instance is provided for the OHDSI community by the
+          Erasmus MC Department of Medical Informatics
+          <br />
           info@pantheon-hds.com
         </div>
       </Modal>

@@ -19,7 +19,8 @@ use qdrant_client::{Qdrant, qdrant};
 use serde::Deserialize;
 use std::collections::HashMap;
 
-pub const COLLECTION_NAME: &str = "meddra";
+pub const CONCEPT_COLLECTION: &str = "meddra";
+pub const SYNONYMS_COLLECTION: &str = "synonyms";
 
 #[derive(Deserialize)]
 struct Parameters {
@@ -47,25 +48,14 @@ struct ExpandParams {
     parentlevels: Option<i32>,
 }
 
-#[get("/api/search_standard")]
-async fn search_standard(
-    parameters: Query<Parameters>,
-    state: Data<StateWrapper>,
-) -> Result<Json<Vec<SearchResponse>>, Error> {
-    let limit = parameters.limit.unwrap_or(25) as usize;
-    let mut query_string = format!("q={}", parameters.q);
-    if let Some(exclude_vocab_ids) = &parameters.exclude_vocabulary_id {
-        let exclude_vocab_str = exclude_vocab_ids.join(",");
-        query_string.push_str(&format!("&exclude_vocabulary_id={}", exclude_vocab_str));
-    }
-    let resp = search(
-        Query::from_query(&query_string)?,
-        state.clone(),
-    )
-    .await;
-    let mut concept_map: HashMap<i32, (Concept, f64)> = HashMap::new();
-    let vecdd = resp?;
-    'outer: for sr in vecdd {
+async fn process_search_results(
+    search_results: Vec<SearchResponse>,
+    concept_map: &mut HashMap<i32, (Concept, f64)>,
+    parameters: &Parameters,
+    state: &Data<StateWrapper>,
+    limit: usize,
+) -> Result<(), Error> {
+    'outer: for sr in search_results {
         for concept in &sr.concepts {
             if concept_map.len() >= limit {
                 break 'outer;
@@ -75,7 +65,7 @@ async fn search_standard(
                 .as_ref()
                 .is_some_and(|sc| sc.eq_ignore_ascii_case("S"))
             {
-                let filtered_concepts = filter_concepts(vec![concept.clone()], &parameters);
+                let filtered_concepts = filter_concepts(vec![concept.clone()], parameters);
                 if !filtered_concepts.is_empty() {
                     let filtered_concept = &filtered_concepts[0];
                     if let Some((_, existing_score)) = concept_map.get(&filtered_concept.concept_id)
@@ -96,7 +86,7 @@ async fn search_standard(
             } else {
                 let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
                 let standard_concepts = db::map_to_standard(&pg_client, concept.concept_id).await?;
-                let filtered_standard_concepts = filter_concepts(standard_concepts, &parameters);
+                let filtered_standard_concepts = filter_concepts(standard_concepts, parameters);
                 for std_concept in filtered_standard_concepts {
                     if let Some((_, existing_score)) = concept_map.get(&std_concept.concept_id) {
                         if sr.score.unwrap() > *existing_score {
@@ -114,6 +104,58 @@ async fn search_standard(
             }
         }
     }
+    Ok(())
+}
+
+#[get("/api/search_standard")]
+async fn search_standard(
+    parameters: Query<Parameters>,
+    state: Data<StateWrapper>,
+) -> Result<Json<Vec<SearchResponse>>, Error> {
+    let limit = parameters.limit.unwrap_or(25) as usize;
+    let mut query_string = format!("q={}", parameters.q);
+    if let Some(exclude_vocab_ids) = &parameters.exclude_vocabulary_id {
+        let exclude_vocab_str = exclude_vocab_ids.join(",");
+        query_string.push_str(&format!("&exclude_vocabulary_id={}", exclude_vocab_str));
+    }
+    let resp = search(
+        Query::from_query(&query_string)?,
+        state.clone(),
+        CONCEPT_COLLECTION,
+    )
+    .await;
+
+    // Additional search call with synonyms collection
+    let synonyms_resp = search(
+        Query::from_query(&query_string)?,
+        state.clone(),
+        SYNONYMS_COLLECTION,
+    )
+    .await;
+
+    let mut concept_map: HashMap<i32, (Concept, f64)> = HashMap::new();
+    let main_search_results = resp?;
+    let synonyms_search_results = synonyms_resp?;
+
+    // Process main search results
+    process_search_results(
+        main_search_results,
+        &mut concept_map,
+        &parameters,
+        &state,
+        limit,
+    )
+    .await?;
+
+    // Process synonyms search results
+    process_search_results(
+        synonyms_search_results,
+        &mut concept_map,
+        &parameters,
+        &state,
+        limit,
+    )
+    .await?;
 
     let mut grouped_concepts: HashMap<String, (f64, Vec<Concept>)> = HashMap::new();
 
@@ -154,12 +196,13 @@ async fn search_api(
     parameters: Query<Parameters>,
     state: Data<StateWrapper>,
 ) -> Result<Json<Vec<SearchResponse>>, Error> {
-    Ok(Json(search(parameters, state).await?))
+    Ok(Json(search(parameters, state, CONCEPT_COLLECTION).await?))
 }
 
 async fn search(
     parameters: Query<Parameters>,
     state: Data<StateWrapper>,
+    collection_name: &str,
 ) -> Result<Vec<SearchResponse>, Error> {
     let client = &state.qdrant_client;
     let input = parameters.q.trim();
@@ -188,7 +231,7 @@ async fn search(
                     item.iter().for_each(|x| ids.push(x.to_string()))
                 } else {
                     let results: Vec<RetrievedPoint> =
-                        find_by_concept_name_lower(client, lower, COLLECTION_NAME).await;
+                        find_by_concept_name_lower(client, lower, collection_name).await;
                     results.iter().for_each(|x| {
                         if let PointIdOptions::Uuid(id) =
                             x.clone().id.unwrap().point_id_options.unwrap()
@@ -202,7 +245,8 @@ async fn search(
             let limit = parameters.limit.unwrap_or(100);
             // Request more results from qdrant to account for filtering
             let search_limit = 250;
-            let recommendations = recommend(input.to_string(), client, search_limit).await;
+            let recommendations =
+                recommend(input.to_string(), client, search_limit, collection_name).await;
             for sp in recommendations {
                 let mut concept: SearchResponse = SearchResponse::from(sp);
                 // Apply filters after retrieval due to performance issues with filtering in qdrant
@@ -246,7 +290,15 @@ async fn search(
         points.push(PointId::from(id.as_str()));
         recs = recs.add_positive(PointId::from(id.as_str()));
     }
-    create_response_from_vector_db_ids(client, to_return, recs, points, &parameters).await
+    create_response_from_vector_db_ids(
+        client,
+        to_return,
+        recs,
+        points,
+        &parameters,
+        collection_name,
+    )
+    .await
 }
 
 #[get("/api/concepts/{id}")]
@@ -334,11 +386,12 @@ async fn create_response_from_vector_db_ids(
     recs: RecommendInputBuilder,
     points: Vec<PointId>,
     parameters: &Parameters,
+    collection_name: &str,
 ) -> Result<Vec<SearchResponse>, Error> {
-    let search_result = retrieve_point_from_db(client, points, COLLECTION_NAME).await;
+    let search_result = retrieve_point_from_db(client, points, collection_name).await;
     let limit = parameters.limit.unwrap_or(100);
     // Request more results from qdrant to account for filtering
-    let query_points_builder = QueryPointsBuilder::new(COLLECTION_NAME)
+    let query_points_builder = QueryPointsBuilder::new(collection_name)
         .with_payload(true)
         .score_threshold(0.50)
         .limit(500)
@@ -451,10 +504,15 @@ async fn retrieve_point_from_db(
         .result
 }
 
-async fn recommend(input: String, client: &Qdrant, limit: u64) -> Vec<ScoredPoint> {
+async fn recommend(
+    input: String,
+    client: &Qdrant,
+    limit: u64,
+    collection_name: &str,
+) -> Vec<ScoredPoint> {
     let vector = fetch_embeddings(input).await.unwrap().embedding;
     client
-        .search_points(SearchPointsBuilder::new(COLLECTION_NAME, vector, limit).with_payload(true))
+        .search_points(SearchPointsBuilder::new(collection_name, vector, limit).with_payload(true))
         .await
         .unwrap()
         .result
