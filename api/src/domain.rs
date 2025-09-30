@@ -93,6 +93,7 @@ pub struct Concept {
     pub valid_start_date: Option<NaiveDate>,
     pub valid_end_date: Option<NaiveDate>,
     #[serde(default)]
+    #[pg_mapper(skip)]
     pub record_count: i64,
 }
 
