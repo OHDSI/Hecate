@@ -34,6 +34,7 @@ use uuid::Uuid;
 
 struct StateWrapper {
     concept_index: HashMap<String, Vec<Uuid>>,
+    concept_record_counts: HashMap<i32, i64>,
     pg_pool: Pool,
     qdrant_client: Qdrant,
     expand_cache: Cache<ExpandCacheKey, ExpandResponse>,
@@ -101,6 +102,7 @@ async fn create_state(config: &Configs) -> Result<Data<StateWrapper>, Box<dyn Er
         .expect("Qdrant health check failed");
 
     let concept_index = load_concept_index(&config.vectordb_data_path)?;
+    let concept_record_counts = load_concept_record_counts()?;
 
     info!(
         "Initializing concept expansion cache (max_capacity: {}, ttl: {} days)",
@@ -124,6 +126,7 @@ async fn create_state(config: &Configs) -> Result<Data<StateWrapper>, Box<dyn Er
 
     let state = Data::new(StateWrapper {
         concept_index,
+        concept_record_counts,
         pg_pool,
         qdrant_client,
         expand_cache,
@@ -145,4 +148,13 @@ fn load_concept_index(
     let value_ids_map: HashMap<String, Vec<Uuid>> = serde_json::from_str(&bytes)?;
     info!("{} concept-vector_ids loaded", value_ids_map.len());
     Ok(value_ids_map)
+}
+
+fn load_concept_record_counts() -> Result<HashMap<i32, i64>, Box<dyn Error>> {
+    let path = "ConceptRecordCounts.json";
+    info!("Load concept record counts from file: {}", path);
+    let bytes = fs::read_to_string(path)?;
+    let record_counts: HashMap<i32, i64> = serde_json::from_str(&bytes)?;
+    info!("{} concept record counts loaded", record_counts.len());
+    Ok(record_counts)
 }

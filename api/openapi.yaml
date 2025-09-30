@@ -458,6 +458,12 @@ components:
           description: End date of concept validity
           example: "2099-12-31"
           nullable: true
+        record_count:
+          type: integer
+          format: int64
+          description: Number of records associated with this concept in the OHDSI network
+          example: 10980
+          default: 0
       required:
         - concept_id
         - concept_name
@@ -465,6 +471,7 @@ components:
         - vocabulary_id
         - concept_class_id
         - concept_code
+        - record_count
 
     RelatedConcept:
       type: object
@@ -555,6 +562,12 @@ components:
           description: Level in the hierarchy (0 = root concept)
           example: 1
           nullable: true
+        record_count:
+          type: integer
+          format: int64
+          description: Number of records associated with this concept in the OHDSI network
+          example: 10980
+          default: 0
         children:
           type: array
           description: Child concepts in the hierarchy
@@ -567,6 +580,7 @@ components:
         - vocabulary_id
         - concept_class_id
         - concept_code
+        - record_count
         - children
 
     Error:
