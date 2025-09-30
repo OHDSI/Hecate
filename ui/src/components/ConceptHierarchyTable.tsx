@@ -64,6 +64,14 @@ export default function ConceptHierarchyTable(
         return row.level - 1;
       },
     },
+    {
+      title: "records",
+      dataIndex: "record_count",
+      key: "record_count",
+      render: (value: number | undefined) => value?.toLocaleString() ?? "",
+      sorter: (a, b) => (a.record_count ?? 0) - (b.record_count ?? 0),
+      responsive: full ? ["md"] : ["xxl"],
+    },
   ];
   const [selected, setSelected] = useState<ConceptExpandRow[]>([]);
 

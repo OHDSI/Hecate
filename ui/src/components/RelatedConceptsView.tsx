@@ -128,6 +128,14 @@ export default function RelatedConceptsView(props: {
       onFilter: (value, record) =>
         record.vocabulary_id.includes(value as string),
     },
+    {
+      title: "records",
+      dataIndex: "record_count",
+      key: "record_count",
+      render: (value: number | undefined) => value?.toLocaleString() ?? "",
+      sorter: (a, b) => (a.record_count ?? 0) - (b.record_count ?? 0),
+      responsive: ["md"],
+    },
   ];
 
   return (

@@ -61,6 +61,7 @@ function ConceptView() {
           },
           { name: "valid start", value: c.valid_start_date },
           { name: "valid end", value: c.valid_end_date },
+          { name: "record count", value: c.record_count },
         ];
         setData(d);
       });
