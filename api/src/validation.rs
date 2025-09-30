@@ -204,6 +204,7 @@ pub async fn analyze_concept_set(
     pg_client: &Client,
     qdrant_client: Option<&Qdrant>,
     concept_index: Option<&HashMap<String, Vec<Uuid>>>,
+    record_counts: Option<&HashMap<i32, i64>>,
 ) -> Result<ValidationResult, PgError> {
     info!("Starting concept set analysis");
     let mut result = ValidationResult::new();
@@ -423,6 +424,7 @@ pub struct RecommendedConcept {
     pub invalid_reason: Option<String>,
     pub similarity_score: f32,
     pub source_concept_id: i32, // The top-level concept that led to this recommendation
+    pub record_count: i64,
 }
 
 #[derive(Debug, Serialize)]
@@ -577,6 +579,9 @@ async fn query_and_process_recommendations(
                             invalid_reason: concept.invalid_reason,
                             similarity_score: scored_point.score,
                             source_concept_id,
+                            record_count: record_counts
+                                .and_then(|rc| rc.get(&concept_id).copied())
+                                .unwrap_or(0),
                         });
                     } else if existing_concepts.contains(&concept_id) {
                         already_in_set_count += 1;
