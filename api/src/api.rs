@@ -660,6 +660,7 @@ async fn analyze_concept_set(
         &pg_client,
         Some(&state.qdrant_client),
         Some(&state.concept_index),
+        Some(&state.concept_record_counts),
     )
     .await
     .unwrap_or_else(|e| {
