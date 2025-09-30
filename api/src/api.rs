@@ -252,7 +252,11 @@ async fn search(
     let input = parameters.q.trim();
     let lowercase_input = input.to_lowercase();
     info!("Received search request for {:?}", &input);
-    let opt_existing = state.concept_index.get(lowercase_input.as_str());
+    let opt_existing = if collection_name == CONCEPT_COLLECTION {
+        state.concept_index.get(lowercase_input.as_str())
+    } else {
+        None
+    };
     let mut to_return: Vec<SearchResponse> = Vec::new();
     let mut ids: Vec<String> = Vec::new();
     if let Some(existing) = opt_existing {
@@ -270,7 +274,11 @@ async fn search(
             for c in concepts {
                 let lower = c.to_lowercase();
                 info!("{}", lower);
-                let res = state.concept_index.get(lower.as_str());
+                let res = if collection_name == CONCEPT_COLLECTION {
+                    state.concept_index.get(lower.as_str())
+                } else {
+                    None
+                };
                 if let Some(item) = res {
                     item.iter().for_each(|x| ids.push(x.to_string()))
                 } else {
