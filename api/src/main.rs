@@ -34,7 +34,7 @@ use uuid::Uuid;
 
 struct StateWrapper {
     concept_index: HashMap<String, Vec<Uuid>>,
-    concept_record_counts: HashMap<i32, i64>,
+    concept_record_counts: HashMap<i32, i32>,
     pg_pool: Pool,
     qdrant_client: Qdrant,
     expand_cache: Cache<ExpandCacheKey, ExpandResponse>,
@@ -150,11 +150,11 @@ fn load_concept_index(
     Ok(value_ids_map)
 }
 
-fn load_concept_record_counts() -> Result<HashMap<i32, i64>, Box<dyn Error>> {
+fn load_concept_record_counts() -> Result<HashMap<i32, i32>, Box<dyn Error>> {
     let path = "ConceptRecordCounts.json";
     info!("Load concept record counts from file: {}", path);
     let bytes = fs::read_to_string(path)?;
-    let record_counts: HashMap<i32, i64> = serde_json::from_str(&bytes)?;
+    let record_counts: HashMap<i32, i32> = serde_json::from_str(&bytes)?;
     info!("{} concept record counts loaded", record_counts.len());
     Ok(record_counts)
 }

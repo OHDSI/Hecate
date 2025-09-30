@@ -16,7 +16,7 @@ impl ConceptExpander {
         expand_cache: &Cache<ExpandCacheKey, ExpandResponse>,
         children_cache: &Cache<i32, Vec<Concept>>,
         parents_cache: &Cache<i32, Vec<Concept>>,
-        record_counts: &HashMap<i32, i64>,
+        record_counts: &HashMap<i32, i32>,
         concept_id: i32,
         child_levels: Option<i32>,
         parent_levels: Option<i32>,
@@ -79,7 +79,7 @@ impl ConceptExpander {
     async fn attach_children(
         client: &Client,
         children_cache: &Cache<i32, Vec<Concept>>,
-        record_counts: &HashMap<i32, i64>,
+        record_counts: &HashMap<i32, i32>,
         mut concept: ExpandConcept,
         max_levels: i32,
     ) -> Result<ExpandConcept, PgError> {
@@ -102,7 +102,7 @@ impl ConceptExpander {
     fn get_children_recursive<'a>(
         client: &'a Client,
         children_cache: &'a Cache<i32, Vec<Concept>>,
-        record_counts: &'a HashMap<i32, i64>,
+        record_counts: &'a HashMap<i32, i32>,
         concepts: Vec<ExpandConcept>,
         current_level: i32,
         max_levels: i32,
@@ -146,7 +146,7 @@ impl ConceptExpander {
     async fn build_parent_hierarchy(
         client: &Client,
         parents_cache: &Cache<i32, Vec<Concept>>,
-        record_counts: &HashMap<i32, i64>,
+        record_counts: &HashMap<i32, i32>,
         concept: ExpandConcept,
         max_levels: i32,
     ) -> Result<Vec<ExpandConcept>, PgError> {
@@ -156,7 +156,7 @@ impl ConceptExpander {
     fn get_parents_recursive<'a>(
         client: &'a Client,
         parents_cache: &'a Cache<i32, Vec<Concept>>,
-        record_counts: &'a HashMap<i32, i64>,
+        record_counts: &'a HashMap<i32, i32>,
         concept: ExpandConcept,
         current_level: i32,
         max_levels: i32,
