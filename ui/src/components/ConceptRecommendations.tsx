@@ -54,6 +54,7 @@ const ConceptRecommendationsComponent: React.FC<
         expandInvalidReasonAbbreviation(rec.invalid_reason || undefined),
       ],
       score: rec.similarity_score,
+      record_count: rec.record_count,
     }));
   }, [recommendations.recommendations]);
 
