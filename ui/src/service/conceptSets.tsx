@@ -11,6 +11,7 @@ export interface RecommendedConcept {
   invalid_reason: string | null;
   similarity_score: number;
   source_concept_id: number;
+  record_count?: number;
 }
 
 export interface ConceptRecommendations {
