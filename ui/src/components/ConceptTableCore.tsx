@@ -269,6 +269,15 @@ const ConceptTableCore: React.FC<ConceptTableCoreProps> = ({
           sorter: (a: ConceptRow, b: ConceptRow) => a.score - b.score,
           responsive: full ? ["md" as const] : ["xxl" as const],
         },
+        {
+          title: "records",
+          dataIndex: "record_count",
+          key: "record_count",
+          render: (value: number | undefined) => value?.toLocaleString() ?? "",
+          sorter: (a: ConceptRow, b: ConceptRow) =>
+            (a.record_count ?? 0) - (b.record_count ?? 0),
+          responsive: full ? ["md" as const] : ["xxl" as const],
+        },
       ].filter((column) => !hiddenColumns.includes(column.key as string)),
     [
       full,

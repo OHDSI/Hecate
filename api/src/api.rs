@@ -371,8 +371,14 @@ async fn get_concept_relationships(
     let id = path.into_inner();
     info!("Get concept {} relationships", &id);
     let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
-    let concept = db::get_concept_relationships(&pg_client, id).await?;
-    Ok(HttpResponse::Ok().json(concept))
+    let mut concepts = db::get_concept_relationships(&pg_client, id).await?;
+
+    // Enrich with record counts
+    for concept in &mut concepts {
+        concept.record_count = state.concept_record_counts.get(&concept.concept_id).copied().unwrap_or(0);
+    }
+
+    Ok(HttpResponse::Ok().json(concepts))
 }
 
 #[get("/api/concepts/{id}/phoebe")]
@@ -383,8 +389,14 @@ async fn get_concept_phoebe(
     let id = path.into_inner();
     info!("Get concept {} phoebe", &id);
     let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
-    let concept = db::get_concept_phoebe(&pg_client, id).await?;
-    Ok(HttpResponse::Ok().json(concept))
+    let mut concepts = db::get_concept_phoebe(&pg_client, id).await?;
+
+    // Enrich with record counts
+    for concept in &mut concepts {
+        concept.record_count = state.concept_record_counts.get(&concept.concept_id).copied().unwrap_or(0);
+    }
+
+    Ok(HttpResponse::Ok().json(concepts))
 }
 
 #[get("/api/concepts/{id}/definition")]

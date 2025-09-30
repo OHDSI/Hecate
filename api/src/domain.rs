@@ -103,6 +103,8 @@ pub struct RelatedConcept {
     pub concept_id: i32,
     pub concept_name: String,
     pub vocabulary_id: String,
+    #[serde(default)]
+    pub record_count: i64,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

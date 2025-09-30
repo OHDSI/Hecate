@@ -319,6 +319,14 @@ export default function ConceptTable(props: Readonly<ConceptTableProps>) {
         sorter: (a, b) => a.score - b.score,
         responsive: full ? ["xxl"] : ["md"],
       },
+      {
+        title: "records",
+        dataIndex: "record_count",
+        key: "record_count",
+        render: (value: number | undefined) => value?.toLocaleString() ?? "",
+        sorter: (a, b) => (a.record_count ?? 0) - (b.record_count ?? 0),
+        responsive: full ? ["md"] : ["xxl"],
+      },
     ],
     [full, filteredInfo, filterOptions, renderCellValue],
   );

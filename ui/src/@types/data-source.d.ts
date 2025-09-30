@@ -9,6 +9,7 @@ export type Concept = {
   invalid_reason?: string;
   valid_start_date: string;
   valid_end_date: string;
+  record_count: number;
 };
 
 export type RelatedConcept = {
@@ -16,6 +17,7 @@ export type RelatedConcept = {
   concept_id: number;
   concept_name: string;
   vocabulary_id: string;
+  record_count?: number;
 };
 
 export type SearchResponse = {
@@ -35,6 +37,7 @@ export type ConceptRow = {
   standard_concept: string[];
   invalid_reason: string[];
   score: number;
+  record_count?: number;
   children?: ConceptRow[];
 };
 
@@ -48,5 +51,6 @@ export type ConceptExpandRow = {
   standard_concept: string;
   invalid_reason: string;
   level: number;
+  record_count?: number;
   children?: ConceptExpandRow[];
 };

@@ -70,10 +70,10 @@ export const search = async (q: string): Promise<ConceptRow[]> => {
                 ),
               ],
               score: resp.score,
+              record_count: resp.concepts[0].record_count,
               children: undefined,
             };
           } else {
-            console.log("in the else");
             const children = resp.concepts.map((c) => {
               return {
                 concept_id: c.concept_id,
@@ -89,6 +89,7 @@ export const search = async (q: string): Promise<ConceptRow[]> => {
                   expandInvalidReasonAbbreviation(c.invalid_reason),
                 ],
                 score: resp.score,
+                record_count: c.record_count,
                 children: undefined,
               };
             });
@@ -108,6 +109,7 @@ export const search = async (q: string): Promise<ConceptRow[]> => {
                 ...new Set(children.map((c) => c.invalid_reason[0])),
               ],
               score: resp.score,
+              record_count: children.reduce((sum, c) => sum + (c.record_count ?? 0), 0),
               children: children,
             };
           }
