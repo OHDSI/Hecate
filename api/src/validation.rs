@@ -362,7 +362,7 @@ pub async fn analyze_concept_set(
 
     // Generate recommendations if qdrant client and concept index are available
     if let (Some(qdrant), Some(index)) = (qdrant_client, concept_index) {
-        match get_concept_recommendations(&expression, pg_client, qdrant, index).await {
+        match get_concept_recommendations(&expression, pg_client, qdrant, index, record_counts).await {
             Ok(recommendations) => {
                 result.recommendations = Some(recommendations);
             }
@@ -622,6 +622,7 @@ pub async fn get_concept_recommendations(
     pg_client: &Client,
     qdrant_client: &Qdrant,
     concept_index: &HashMap<String, Vec<Uuid>>,
+    record_counts: Option<&HashMap<i32, i64>>,
 ) -> Result<ConceptRecommendations, PgError> {
     // Get all concepts that are already in the set (direct, descendants, excluded)
     let existing_concepts = get_all_concepts_in_set(expression, pg_client).await?;
