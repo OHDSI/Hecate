@@ -527,6 +527,7 @@ async fn query_and_process_recommendations(
     top_level_included: &[&ConceptSetItem],
     allowed_domains: &HashSet<String>,
     concept_set_vocabularies: HashSet<String>,
+    record_counts: Option<&HashMap<i32, i64>>,
 ) -> ConceptRecommendations {
     const COLLECTION_NAME: &str = "meddra";
     let mut all_recommendations = Vec::new();
@@ -697,6 +698,7 @@ pub async fn get_concept_recommendations(
         &top_level_included,
         &allowed_domains,
         concept_set_vocabularies,
+        record_counts,
     )
     .await;
 
