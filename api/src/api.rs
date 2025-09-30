@@ -55,14 +55,18 @@ async fn process_search_results(
     state: &Data<StateWrapper>,
     limit: usize,
 ) -> Result<(), Error> {
-    'outer: for sr in search_results {
+    for sr in search_results {
         for concept in &sr.concepts {
             if concept
                 .standard_concept
                 .as_ref()
                 .is_some_and(|sc| sc.eq_ignore_ascii_case("S"))
             {
-                let filtered_concepts = filter_concepts(vec![concept.clone()], parameters);
+                let filtered_concepts = filter_and_enrich_concepts(
+                    vec![concept.clone()],
+                    parameters,
+                    &state.concept_record_counts,
+                );
                 if !filtered_concepts.is_empty() {
                     let filtered_concept = &filtered_concepts[0];
                     if let Some((_, existing_score)) = concept_map.get(&filtered_concept.concept_id)
@@ -82,10 +86,14 @@ async fn process_search_results(
                             );
                         } else {
                             // At limit, check if this score is higher than the lowest score
-                            let min_score = concept_map.values().map(|(_, s)| *s).fold(f64::INFINITY, f64::min);
+                            let min_score = concept_map
+                                .values()
+                                .map(|(_, s)| *s)
+                                .fold(f64::INFINITY, f64::min);
                             if score > min_score {
                                 // Remove the entry with the lowest score
-                                let min_concept_id = concept_map.iter()
+                                let min_concept_id = concept_map
+                                    .iter()
                                     .find(|(_, (_, s))| *s == min_score)
                                     .map(|(id, _)| *id)
                                     .unwrap();
@@ -102,7 +110,11 @@ async fn process_search_results(
             } else {
                 let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
                 let standard_concepts = db::map_to_standard(&pg_client, concept.concept_id).await?;
-                let filtered_standard_concepts = filter_concepts(standard_concepts, parameters);
+                let filtered_standard_concepts = filter_and_enrich_concepts(
+                    standard_concepts,
+                    parameters,
+                    &state.concept_record_counts,
+                );
                 for std_concept in filtered_standard_concepts {
                     if let Some((_, existing_score)) = concept_map.get(&std_concept.concept_id) {
                         if sr.score.unwrap() > *existing_score {
@@ -115,10 +127,14 @@ async fn process_search_results(
                             concept_map.insert(std_concept.concept_id, (std_concept, score));
                         } else {
                             // At limit, check if this score is higher than the lowest score
-                            let min_score = concept_map.values().map(|(_, s)| *s).fold(f64::INFINITY, f64::min);
+                            let min_score = concept_map
+                                .values()
+                                .map(|(_, s)| *s)
+                                .fold(f64::INFINITY, f64::min);
                             if score > min_score {
                                 // Remove the entry with the lowest score
-                                let min_concept_id = concept_map.iter()
+                                let min_concept_id = concept_map
+                                    .iter()
                                     .find(|(_, (_, s))| *s == min_score)
                                     .map(|(id, _)| *id)
                                     .unwrap();
@@ -278,7 +294,11 @@ async fn search(
             for sp in recommendations {
                 let mut concept: SearchResponse = SearchResponse::from(sp);
                 // Apply filters after retrieval due to performance issues with filtering in qdrant
-                concept.concepts = filter_concepts(concept.concepts, &parameters);
+                concept.concepts = filter_and_enrich_concepts(
+                    concept.concepts,
+                    &parameters,
+                    &state.concept_record_counts,
+                );
                 if concept.concepts.is_empty() {
                     continue;
                 }
@@ -325,6 +345,7 @@ async fn search(
         points,
         &parameters,
         collection_name,
+        &state.concept_record_counts,
     )
     .await
 }
@@ -337,7 +358,8 @@ async fn get_concept_by_id(
     let id = path.into_inner();
     info!("Get concept {}", &id);
     let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
-    let concept = db::get_concept_by_id(&pg_client, id).await?;
+    let mut concept = db::get_concept_by_id(&pg_client, id).await?;
+    concept.record_count = state.concept_record_counts.get(&id).copied().unwrap_or(0);
     Ok(HttpResponse::Ok().json([concept]))
 }
 
@@ -399,6 +421,7 @@ async fn get_concept_expand(
         &state.expand_cache,
         &state.children_cache,
         &state.parents_cache,
+        &state.concept_record_counts,
         id,
         params.childlevels,
         params.parentlevels,
@@ -415,6 +438,7 @@ async fn create_response_from_vector_db_ids(
     points: Vec<PointId>,
     parameters: &Parameters,
     collection_name: &str,
+    record_counts: &HashMap<i32, i64>,
 ) -> Result<Vec<SearchResponse>, Error> {
     let search_result = retrieve_point_from_db(client, points, collection_name).await;
     let limit = parameters.limit.unwrap_or(100);
@@ -428,7 +452,7 @@ async fn create_response_from_vector_db_ids(
     for retrieved_point in search_result {
         let mut concept = SearchResponse::from(retrieved_point);
         // Apply filters after retrieval due to performance issues with filtering in qdrant
-        concept.concepts = filter_concepts(concept.concepts, parameters);
+        concept.concepts = filter_and_enrich_concepts(concept.concepts, parameters, record_counts);
         if concept.concepts.is_empty() {
             continue;
         }
@@ -452,7 +476,7 @@ async fn create_response_from_vector_db_ids(
     for scored_point in neighbours {
         let mut concept = SearchResponse::from(scored_point);
         // Apply filters after retrieval due to performance issues with filtering in qdrant
-        concept.concepts = filter_concepts(concept.concepts, parameters);
+        concept.concepts = filter_and_enrich_concepts(concept.concepts, parameters, record_counts);
         if concept.concepts.is_empty() {
             continue;
         }
@@ -546,7 +570,11 @@ async fn recommend(
         .result
 }
 
-fn filter_concepts(concepts: Vec<Concept>, parameters: &Parameters) -> Vec<Concept> {
+fn filter_and_enrich_concepts(
+    concepts: Vec<Concept>,
+    parameters: &Parameters,
+    record_counts: &HashMap<i32, i64>,
+) -> Vec<Concept> {
     concepts
         .into_iter()
         .filter(|concept| {
@@ -596,6 +624,11 @@ fn filter_concepts(concepts: Vec<Concept>, parameters: &Parameters) -> Vec<Conce
             }
 
             true
+        })
+        .map(|mut concept| {
+            // Enrich with record count
+            concept.record_count = record_counts.get(&concept.concept_id).copied().unwrap_or(0);
+            concept
         })
         .collect()
 }
