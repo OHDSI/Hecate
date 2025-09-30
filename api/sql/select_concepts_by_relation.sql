@@ -7,7 +7,8 @@ SELECT c.concept_id       AS concept_id,
        c.concept_code     AS concept_code,
        c.valid_start_date AS valid_start_date,
        c.valid_end_date   AS valid_end_date,
-       c.invalid_reason   AS invalid_reason
+       c.invalid_reason   AS invalid_reason,
+       0                  AS record_count
 FROM vocab_27_AUG_25.concept_relationship AS cr
          JOIN vocab_27_AUG_25.concept AS c ON cr.concept_id_2 = c.concept_id
          JOIN vocab_27_AUG_25.relationship AS r ON r.relationship_id = cr.relationship_id

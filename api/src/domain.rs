@@ -79,7 +79,8 @@ impl From<RetrievedPoint> for SearchResponse {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, PostgresMapper, Serialize, Clone)]
+#[pg_mapper(table = "concept")]
 pub struct Concept {
     pub concept_id: i32,
     pub concept_name: String,
@@ -93,24 +94,6 @@ pub struct Concept {
     pub valid_end_date: Option<NaiveDate>,
     #[serde(default)]
     pub record_count: i64,
-}
-
-impl tokio_pg_mapper::FromTokioPostgresRow for Concept {
-    fn from_row(row: tokio_postgres::Row) -> Result<Self, tokio_pg_mapper::Error> {
-        Ok(Concept {
-            concept_id: row.get("concept_id"),
-            concept_name: row.get("concept_name"),
-            domain_id: row.get("domain_id"),
-            vocabulary_id: row.get("vocabulary_id"),
-            concept_class_id: row.get("concept_class_id"),
-            standard_concept: row.get("standard_concept"),
-            concept_code: row.get("concept_code"),
-            invalid_reason: row.get("invalid_reason"),
-            valid_start_date: row.get("valid_start_date"),
-            valid_end_date: row.get("valid_end_date"),
-            record_count: 0,
-        })
-    }
 }
 
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
