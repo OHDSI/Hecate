@@ -8,7 +8,7 @@ SELECT DISTINCT c.concept_id,
                 c.invalid_reason,
                 c.valid_start_date,
                 c.valid_end_date,
-                0 as record_count
+                0::bigint as record_count
 FROM vocab_27_AUG_25.concept_ancestor a,
      vocab_27_AUG_25.concept c
 WHERE a.descendant_concept_id = $1

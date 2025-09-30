@@ -438,7 +438,7 @@ async fn create_response_from_vector_db_ids(
     points: Vec<PointId>,
     parameters: &Parameters,
     collection_name: &str,
-    record_counts: &HashMap<i32, i32>,
+    record_counts: &HashMap<i32, i64>,
 ) -> Result<Vec<SearchResponse>, Error> {
     let search_result = retrieve_point_from_db(client, points, collection_name).await;
     let limit = parameters.limit.unwrap_or(100);
@@ -573,7 +573,7 @@ async fn recommend(
 fn filter_and_enrich_concepts(
     concepts: Vec<Concept>,
     parameters: &Parameters,
-    record_counts: &HashMap<i32, i32>,
+    record_counts: &HashMap<i32, i64>,
 ) -> Vec<Concept> {
     concepts
         .into_iter()

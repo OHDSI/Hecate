@@ -93,7 +93,7 @@ pub struct Concept {
     pub valid_start_date: Option<NaiveDate>,
     pub valid_end_date: Option<NaiveDate>,
     #[serde(default)]
-    pub record_count: i32,
+    pub record_count: i64,
 }
 
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
@@ -116,7 +116,7 @@ pub struct ExpandConcept {
     pub invalid_reason: Option<String>,
     pub level: Option<i32>,
     #[serde(default)]
-    pub record_count: i32,
+    pub record_count: i64,
     #[serde(serialize_with = "serialize_children")]
     pub children: Vec<ExpandConcept>,
 }
