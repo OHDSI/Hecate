@@ -7,6 +7,7 @@ SELECT concept_id,
        concept_code,
        invalid_reason,
        valid_start_date,
-       valid_end_date
+       valid_end_date,
+       0 as record_count
 FROM vocab_27_AUG_25.concept
 WHERE concept_id = $1
