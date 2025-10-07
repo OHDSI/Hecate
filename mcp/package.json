@@ -21,13 +21,13 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.17.4",
-    "axios": "^1.11.0",
-    "zod": "^4.0.17"
+    "@modelcontextprotocol/sdk": "^1.19.1",
+    "axios": "^1.12.2",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@types/node": "^24.3.0",
-    "tsx": "^4.20.4",
-    "typescript": "^5.9.2"
+    "@types/node": "^24.7.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
   }
 }
