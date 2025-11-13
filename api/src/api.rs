@@ -607,11 +607,11 @@ fn filter_and_enrich_concepts(
                 return false;
             }
 
-            // Exclude by vocabulary_id
+            // Exclude by vocabulary_id (substring match), wil cause ICD to filter ICD-N and RxNorm to filter also RxNorm Extension
             if let Some(exclude_vocab_ids) = &parameters.exclude_vocabulary_id
                 && exclude_vocab_ids
                     .iter()
-                    .any(|id| id.eq_ignore_ascii_case(&concept.vocabulary_id))
+                    .any(|id| concept.vocabulary_id.to_lowercase().contains(&id.to_lowercase()))
             {
                 return false;
             }
