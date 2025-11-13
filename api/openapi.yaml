@@ -56,7 +56,6 @@ paths:
             multiple_comma_separated:
               value: "ICD,RxNorm"
               summary: Exclude vocabularies containing "ICD" or "RxNorm" (e.g., ICD10CM, RxNorm, RxNorm Extension)
-              summary: Exclude multiple vocabularies (comma-separated)
         - name: standard_concept
           in: query
           required: false
@@ -155,7 +154,6 @@ paths:
             multiple_comma_separated:
               value: "ICD,RxNorm"
               summary: Exclude vocabularies containing "ICD" or "RxNorm" (e.g., ICD10CM, RxNorm, RxNorm Extension)
-              summary: Exclude multiple vocabularies (comma-separated)
         - name: domain_id
           in: query
           required: false
