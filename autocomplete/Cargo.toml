@@ -10,4 +10,4 @@ env_logger = "0.11.8"
 indicium = "0.6.5"
 log = "0.4.28"
 serde = { version = "1.0.228", features = ["derive"] }
-tokio = { version = "1.47.1", features = ["rt", "rt-multi-thread", "macros"] }
+tokio = { version = "1.48.0", features = ["rt", "rt-multi-thread", "macros"] }
