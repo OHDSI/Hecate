@@ -77,8 +77,8 @@ export default function ConceptHierarchyTable(
 
   const openNotification = () => {
     notification.error({
-      message: `Oops`,
-      description:
+      title: `Oops`,
+      message:
         "Something went wrong, get in touch report issues to info@pantheon-hds.com",
       placement: "topRight",
     });

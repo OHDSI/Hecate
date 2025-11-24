@@ -185,8 +185,8 @@ function MappingResults() {
 
   const openSuccessNotification = useCallback(() => {
     notification.success({
-      message: "Input successfully submitted",
-      description: "Come back in 20 seconds to see the result",
+      title: "Input successfully submitted",
+      message: "Come back in 20 seconds to see the result",
       placement: "topRight",
     });
   }, []);
