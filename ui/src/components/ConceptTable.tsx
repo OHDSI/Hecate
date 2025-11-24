@@ -367,8 +367,8 @@ export default function ConceptTable(props: Readonly<ConceptTableProps>) {
 
   const openNotification = useCallback(() => {
     notification.error({
-      message: "Oops",
-      description:
+      title: "Oops",
+      message:
         "Something went wrong, get in touch report issues to info@pantheon-hds.com",
       placement: "topRight",
     });
