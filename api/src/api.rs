@@ -502,10 +502,56 @@ async fn create_response_from_vector_db_ids(
         Vec::new()
     };
 
-    // Note: We don't need to add search_result items here because they will
-    // already be included in the neighbours search results (the first point's
-    // vector was used for the search, so it and related points will be in neighbours)
+    // Collect the point IDs from search_result to exclude them from neighbours
+    // (they're already being returned and would cause duplicates)
+    let search_result_ids: std::collections::HashSet<String> = search_result
+        .iter()
+        .filter_map(|p| {
+            p.id.as_ref().and_then(|id| {
+                if let Some(PointIdOptions::Uuid(uuid)) = &id.point_id_options {
+                    Some(uuid.clone())
+                } else {
+                    None
+                }
+            })
+        })
+        .collect();
+
+    // Add search_result items first (these are the exact matches)
+    for retrieved_point in search_result {
+        let mut concept = SearchResponse::from(retrieved_point);
+        concept.concepts = filter_and_enrich_concepts(concept.concepts, parameters, record_counts);
+        if concept.concepts.is_empty() {
+            continue;
+        }
+        let mut didwehit = false;
+        to_return = to_return
+            .into_iter()
+            .map(|mut every| {
+                if every.concept_name_lower.eq(&concept.concept_name_lower) {
+                    every.append_concepts(&mut concept.concepts);
+                    didwehit = true;
+                    every
+                } else {
+                    every
+                }
+            })
+            .collect();
+        if !didwehit {
+            to_return.push(concept);
+        }
+    }
+
+    // Add neighbours, but exclude items that were already in search_result
     for scored_point in neighbours {
+        // Skip if this point was already added from search_result
+        if let Some(id) = &scored_point.id {
+            if let Some(PointIdOptions::Uuid(uuid)) = &id.point_id_options {
+                if search_result_ids.contains(uuid) {
+                    continue;
+                }
+            }
+        }
         let mut concept = SearchResponse::from(scored_point);
         // Apply filters after retrieval due to performance issues with filtering in qdrant
         concept.concepts = filter_and_enrich_concepts(concept.concepts, parameters, record_counts);
