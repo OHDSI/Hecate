@@ -38,14 +38,27 @@ impl ConceptExpander {
         if let Some(levels) = child_levels
             && levels > 0
         {
-            expand_concept =
-                Self::attach_children(client, children_cache, record_counts, expand_concept, levels).await?;
+            expand_concept = Self::attach_children(
+                client,
+                children_cache,
+                record_counts,
+                expand_concept,
+                levels,
+            )
+            .await?;
         }
 
         // If parent_levels is specified and > 0, build the parent hierarchy
         let concept_trees = if let Some(levels) = parent_levels {
             if levels > 0 {
-                Self::build_parent_hierarchy(client, parents_cache, record_counts, expand_concept, levels).await?
+                Self::build_parent_hierarchy(
+                    client,
+                    parents_cache,
+                    record_counts,
+                    expand_concept,
+                    levels,
+                )
+                .await?
             } else {
                 vec![expand_concept]
             }
@@ -120,7 +133,8 @@ impl ConceptExpander {
                     let mut expand_children = Vec::new();
 
                     for mut child in children {
-                        child.record_count = record_counts.get(&child.concept_id).copied().unwrap_or(0);
+                        child.record_count =
+                            record_counts.get(&child.concept_id).copied().unwrap_or(0);
                         let expand_child = ExpandConcept::from(child);
                         expand_children.push(expand_child);
                     }
@@ -150,7 +164,16 @@ impl ConceptExpander {
         concept: ExpandConcept,
         max_levels: i32,
     ) -> Result<Vec<ExpandConcept>, PgError> {
-        Self::get_parents_recursive(client, parents_cache, record_counts, concept, 1, max_levels, true).await
+        Self::get_parents_recursive(
+            client,
+            parents_cache,
+            record_counts,
+            concept,
+            1,
+            max_levels,
+            true,
+        )
+        .await
     }
 
     fn get_parents_recursive<'a>(
@@ -175,7 +198,8 @@ impl ConceptExpander {
                     let mut parent_expand_concepts = Vec::new();
 
                     for mut parent in parents {
-                        parent.record_count = record_counts.get(&parent.concept_id).copied().unwrap_or(0);
+                        parent.record_count =
+                            record_counts.get(&parent.concept_id).copied().unwrap_or(0);
                         let mut parent_expand = ExpandConcept::from(parent);
                         if append_child {
                             parent_expand.children.push(concept.clone());
