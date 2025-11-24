@@ -12,8 +12,8 @@ use log::info;
 use qdrant_client::qdrant::condition::ConditionOneOf;
 use qdrant_client::qdrant::point_id::PointIdOptions;
 use qdrant_client::qdrant::{
-    Condition, Filter, GetPointsBuilder, PointId, QueryPointsBuilder, RecommendInputBuilder,
-    RetrievedPoint, ScoredPoint, ScrollPointsBuilder, SearchPointsBuilder,
+    Condition, Filter, GetPointsBuilder, PointId, RecommendInputBuilder, RetrievedPoint,
+    ScoredPoint, ScrollPointsBuilder, SearchPointsBuilder,
 };
 use qdrant_client::{Qdrant, qdrant};
 use serde::Deserialize;
@@ -383,7 +383,11 @@ async fn get_concept_relationships(
 
     // Enrich with record counts
     for concept in &mut concepts {
-        concept.record_count = state.concept_record_counts.get(&concept.concept_id).copied().unwrap_or(0);
+        concept.record_count = state
+            .concept_record_counts
+            .get(&concept.concept_id)
+            .copied()
+            .unwrap_or(0);
     }
 
     Ok(HttpResponse::Ok().json(concepts))
@@ -401,7 +405,11 @@ async fn get_concept_phoebe(
 
     // Enrich with record counts
     for concept in &mut concepts {
-        concept.record_count = state.concept_record_counts.get(&concept.concept_id).copied().unwrap_or(0);
+        concept.record_count = state
+            .concept_record_counts
+            .get(&concept.concept_id)
+            .copied()
+            .unwrap_or(0);
     }
 
     Ok(HttpResponse::Ok().json(concepts))
@@ -454,7 +462,7 @@ async fn get_concept_expand(
 async fn create_response_from_vector_db_ids(
     client: &Qdrant,
     mut to_return: Vec<SearchResponse>,
-    recs: RecommendInputBuilder,
+    _recs: RecommendInputBuilder,
     points: Vec<PointId>,
     parameters: &Parameters,
     collection_name: &str,
@@ -462,13 +470,38 @@ async fn create_response_from_vector_db_ids(
 ) -> Result<Vec<SearchResponse>, Error> {
     let search_result = retrieve_point_from_db(client, points, collection_name).await;
     let limit = parameters.limit.unwrap_or(100);
-    // Request more results from qdrant to account for filtering
-    let query_points_builder = QueryPointsBuilder::new(collection_name)
-        .with_payload(true)
-        .score_threshold(0.50)
-        .limit(500)
-        .query(recs.build());
-    let neighbours = client.query(query_points_builder).await.unwrap().result;
+
+    // Extract vector from the first matched point to use for search
+    let search_vector = if let Some(first_point) = search_result.first() {
+        if let Some(vectors) = &first_point.vectors {
+            match vectors.vectors_options.as_ref() {
+                Some(qdrant::vectors_output::VectorsOptions::Vector(vector)) => {
+                    Some(vector.data.clone())
+                }
+                _ => None,
+            }
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    // Use Search API instead of Query/Recommend API for consistent results
+    let neighbours = if let Some(vector) = search_vector {
+        client
+            .search_points(
+                SearchPointsBuilder::new(collection_name, vector, 500)
+                    .with_payload(true)
+                    .score_threshold(0.50),
+            )
+            .await
+            .unwrap()
+            .result
+    } else {
+        Vec::new()
+    };
+
     for retrieved_point in search_result {
         let mut concept = SearchResponse::from(retrieved_point);
         // Apply filters after retrieval due to performance issues with filtering in qdrant
@@ -568,7 +601,7 @@ async fn retrieve_point_from_db(
     client
         .get_points(
             GetPointsBuilder::new(collection, points)
-                .with_vectors(false)
+                .with_vectors(true)
                 .with_payload(true),
         )
         .await
@@ -609,9 +642,12 @@ fn filter_and_enrich_concepts(
 
             // Exclude by vocabulary_id (substring match), wil cause ICD to filter ICD-N and RxNorm to filter also RxNorm Extension
             if let Some(exclude_vocab_ids) = &parameters.exclude_vocabulary_id
-                && exclude_vocab_ids
-                    .iter()
-                    .any(|id| concept.vocabulary_id.to_lowercase().contains(&id.to_lowercase()))
+                && exclude_vocab_ids.iter().any(|id| {
+                    concept
+                        .vocabulary_id
+                        .to_lowercase()
+                        .contains(&id.to_lowercase())
+                })
             {
                 return false;
             }

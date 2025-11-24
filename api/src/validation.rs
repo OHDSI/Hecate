@@ -362,7 +362,9 @@ pub async fn analyze_concept_set(
 
     // Generate recommendations if qdrant client and concept index are available
     if let (Some(qdrant), Some(index)) = (qdrant_client, concept_index) {
-        match get_concept_recommendations(&expression, pg_client, qdrant, index, record_counts).await {
+        match get_concept_recommendations(&expression, pg_client, qdrant, index, record_counts)
+            .await
+        {
             Ok(recommendations) => {
                 result.recommendations = Some(recommendations);
             }
