@@ -146,7 +146,7 @@ async fn search_standard(
     let mut query_string = format!("q={}", parameters.q);
     if let Some(exclude_vocab_ids) = &parameters.exclude_vocabulary_id {
         let exclude_vocab_str = exclude_vocab_ids.join(",");
-        query_string.push_str(&format!("&exclude_vocabulary_id={}", exclude_vocab_str));
+        query_string.push_str(&format!("&exclude_vocabulary_id={}&limit=250", exclude_vocab_str));
     }
     let resp = search(
         Query::from_query(&query_string)?,
