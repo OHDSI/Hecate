@@ -55,6 +55,9 @@ async fn process_search_results(
     state: &Data<StateWrapper>,
     limit: usize,
 ) -> Result<(), Error> {
+    // First pass: collect all concepts with their best scores
+    let mut all_concepts: HashMap<i32, (Concept, f64)> = HashMap::new();
+
     for sr in search_results {
         for concept in &sr.concepts {
             if concept
@@ -69,42 +72,21 @@ async fn process_search_results(
                 );
                 if !filtered_concepts.is_empty() {
                     let filtered_concept = &filtered_concepts[0];
-                    if let Some((_, existing_score)) = concept_map.get(&filtered_concept.concept_id)
-                    {
-                        if sr.score.unwrap() > *existing_score {
-                            concept_map.insert(
-                                filtered_concept.concept_id,
-                                (filtered_concept.clone(), sr.score.unwrap()),
-                            );
-                        }
-                    } else {
-                        let score = sr.score.unwrap();
-                        if concept_map.len() < limit {
-                            concept_map.insert(
+                    let score = sr.score.unwrap();
+
+                    // Keep the highest score for each concept_id
+                    if let Some((_, existing_score)) = all_concepts.get(&filtered_concept.concept_id) {
+                        if score > *existing_score {
+                            all_concepts.insert(
                                 filtered_concept.concept_id,
                                 (filtered_concept.clone(), score),
                             );
-                        } else {
-                            // At limit, check if this score is higher than the lowest score
-                            let min_score = concept_map
-                                .values()
-                                .map(|(_, s)| *s)
-                                .fold(f64::INFINITY, f64::min);
-                            if score > min_score {
-                                // Remove the entry with the lowest score
-                                let min_concept_id = concept_map
-                                    .iter()
-                                    .find(|(_, (_, s))| *s == min_score)
-                                    .map(|(id, _)| *id)
-                                    .unwrap();
-                                concept_map.remove(&min_concept_id);
-                                // Add the new entry
-                                concept_map.insert(
-                                    filtered_concept.concept_id,
-                                    (filtered_concept.clone(), score),
-                                );
-                            }
                         }
+                    } else {
+                        all_concepts.insert(
+                            filtered_concept.concept_id,
+                            (filtered_concept.clone(), score),
+                        );
                     }
                 }
             } else {
@@ -116,38 +98,42 @@ async fn process_search_results(
                     &state.concept_record_counts,
                 );
                 for std_concept in filtered_standard_concepts {
-                    if let Some((_, existing_score)) = concept_map.get(&std_concept.concept_id) {
-                        if sr.score.unwrap() > *existing_score {
-                            concept_map
-                                .insert(std_concept.concept_id, (std_concept, sr.score.unwrap()));
+                    let score = sr.score.unwrap();
+
+                    // Keep the highest score for each concept_id
+                    if let Some((_, existing_score)) = all_concepts.get(&std_concept.concept_id) {
+                        if score > *existing_score {
+                            all_concepts.insert(std_concept.concept_id, (std_concept, score));
                         }
                     } else {
-                        let score = sr.score.unwrap();
-                        if concept_map.len() < limit {
-                            concept_map.insert(std_concept.concept_id, (std_concept, score));
-                        } else {
-                            // At limit, check if this score is higher than the lowest score
-                            let min_score = concept_map
-                                .values()
-                                .map(|(_, s)| *s)
-                                .fold(f64::INFINITY, f64::min);
-                            if score > min_score {
-                                // Remove the entry with the lowest score
-                                let min_concept_id = concept_map
-                                    .iter()
-                                    .find(|(_, (_, s))| *s == min_score)
-                                    .map(|(id, _)| *id)
-                                    .unwrap();
-                                concept_map.remove(&min_concept_id);
-                                // Add the new entry
-                                concept_map.insert(std_concept.concept_id, (std_concept, score));
-                            }
-                        }
+                        all_concepts.insert(std_concept.concept_id, (std_concept, score));
                     }
                 }
             }
         }
     }
+
+    // Second pass: merge with existing concept_map, keeping best scores
+    for (concept_id, (concept, score)) in all_concepts {
+        if let Some((_, existing_score)) = concept_map.get(&concept_id) {
+            if score > *existing_score {
+                concept_map.insert(concept_id, (concept, score));
+            }
+        } else {
+            concept_map.insert(concept_id, (concept, score));
+        }
+    }
+
+    // Third pass: if over limit, keep only top N by score
+    if concept_map.len() > limit {
+        let mut concepts_vec: Vec<(i32, (Concept, f64))> = concept_map.drain().collect();
+        concepts_vec.sort_by(|a, b| {
+            b.1.1.partial_cmp(&a.1.1).unwrap_or(std::cmp::Ordering::Equal)
+        });
+        concepts_vec.truncate(limit);
+        *concept_map = concepts_vec.into_iter().collect();
+    }
+
     Ok(())
 }
 
