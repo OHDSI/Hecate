@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 actix-cors = "0.7.1"
 actix-web = { version = "4.12.1" }
-async-openai = "0.32.3"
+async-openai = { version = "0.32.3", features = ["embedding"] }
 chrono = { version = "0.4.43", features = ["serde" ] }
 confik = "0.15.1"
 deadpool-postgres = { version = "0.14.1", features = ["serde"] }
