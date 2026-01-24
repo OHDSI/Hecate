@@ -70,13 +70,6 @@ export class HecateApiClient {
     return response.data;
   }
 
-  async getConceptDefinition(id: number): Promise<string> {
-    const response: AxiosResponse<string> = await this.client.get(
-      `/concepts/${id}/definition`,
-    );
-    return response.data;
-  }
-
   async expandConcept(
     id: number,
     childLevels: number = 5,
