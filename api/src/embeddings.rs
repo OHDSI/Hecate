@@ -1,5 +1,5 @@
 use async_openai::Client;
-use async_openai::types::{CreateEmbeddingRequestArgs, Embedding};
+use async_openai::types::embeddings::{CreateEmbeddingRequestArgs, Embedding};
 use log::info;
 use std::error::Error;
 
