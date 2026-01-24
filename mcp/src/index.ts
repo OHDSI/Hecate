@@ -53,10 +53,6 @@ const ConceptIdInputSchema = z.object({
   id: z.number().int().positive(),
 });
 
-const AutocompleteInputSchema = z.object({
-  query: z.string().min(1).max(100),
-});
-
 const ExpandConceptInputSchema = z.object({
   id: z.number().int().positive(),
   childLevels: z.number().int().min(0).max(10).optional(),
@@ -99,9 +95,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             limit: {
               type: "number",
-              description: "Maximum number of results to return (default: 25, max: 150)",
+              description: "Maximum number of results to return (default: 20, max: 50)",
               minimum: 1,
-              maximum: 150,
+              maximum: 50,
             },
           },
           required: ["query"],
@@ -155,22 +151,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: "get_concept_definition",
-        description:
-          "Get the clinical definition from UMLS for a specific OMOP concept if available. Returns detailed descriptions to help understand the medical meaning and clinical context.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            id: {
-              type: "number",
-              description: "OMOP concept ID to get definition for",
-              minimum: 1,
-            },
-          },
-          required: ["id"],
-        },
-      },
-      {
         name: "expand_concept_hierarchy",
         description:
           "Get the hierarchical structure of an OMOP concept including children and parents. Useful for exploring clinical taxonomies and building comprehensive phenotype definitions.",
@@ -209,7 +189,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (name) {
       case "search_concepts": {
-        const { query, vocabulary_id, standard_concept, domain_id, concept_class_id, limit = 25 } = SearchInputSchema.parse(args);
+        const { query, vocabulary_id, standard_concept, domain_id, concept_class_id, limit = 20 } = SearchInputSchema.parse(args);
         const results = await apiClient.search(query, {
           vocabulary_id,
           standard_concept,
@@ -261,19 +241,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             {
               type: "text",
               text: JSON.stringify(phoebe, null, 2),
-            },
-          ],
-        };
-      }
-
-      case "get_concept_definition": {
-        const { id } = ConceptIdInputSchema.parse(args);
-        const definition = await apiClient.getConceptDefinition(id);
-        return {
-          content: [
-            {
-              type: "text",
-              text: definition,
             },
           ],
         };
