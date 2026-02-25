@@ -5,21 +5,21 @@ edition = "2024"
 
 [dependencies]
 actix-cors = "0.7.1"
-actix-web = { version = "4.12.1" }
-async-openai = { version = "0.32.3", features = ["embedding"] }
-chrono = { version = "0.4.43", features = ["serde" ] }
+actix-web = { version = "4.13.0" }
+async-openai = { version = "0.33.0", features = ["embedding"] }
+chrono = { version = "0.4.44", features = ["serde" ] }
 confik = "0.15.1"
 deadpool-postgres = { version = "0.14.1", features = ["serde"] }
 derive_more =  { version = "2.1.1", features = ["full"] }
 dotenvy = "0.15.7"
-env_logger = "0.11.8"
+env_logger = "0.11.9"
 log = "0.4.29"
 moka = { version = "0.12", features = ["future"] }
-qdrant-client = "1.16.0"
-reqwest = { version = "0.13.1", features = ["json"] }
+qdrant-client = "1.17.0"
+reqwest = { version = "0.13.2", features = ["json"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 tokio-pg-mapper = "0.2.0"
 tokio-pg-mapper-derive = "0.2.0"
 tokio-postgres = { version = "0.7.16", features = ["with-chrono-0_4"] }
-uuid = { version = "1.19.0", features = ["v4", "serde"] }
+uuid = { version = "1.21.0", features = ["v4", "serde"] }
