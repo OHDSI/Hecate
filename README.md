@@ -16,56 +16,31 @@ Hecate consists of three main components:
 - **hecate-api** - Rust API backend for concept data and search
 - **autocomplete** - Rust autocomplete service for search suggestions
 
-## Running Hecate locally
+## Used by
 
-**At the moment, it requires some effort (and then some more) to get the full setup running locally.**
-**There is work in progress for a fully functional friendly local install**
+- [Ariadne](https://ohdsi.github.io/Ariadne/) — uses the Hecate API for semantic search
 
-You need:
+## Running locally
 
-- A Qdrant db populated with the vector embeddings for the concepts you want to be able to find.
-- Access to the model with which you generated the embeddings to fetch new embeddings for queries of unknown terms.
-- For the concept details page to load, you also need a Postgres db containing the vocabulary.
-
-If there is any interest in a basic docker compose sample setup with some limited demo data please get in touch.
-
-## Quick Start
-
-### Frontend (hecate-ui)
+See the [API local installation guide](./api/LOCAL_INSTALL.md) for setting up PostgreSQL, Qdrant, and the required data files. Once that's done:
 
 ```bash
+# API
+cd api
+cargo run
+
+# Frontend
 cd ui
 npm install
 npm run dev
-```
 
-### API Backend (hecate-api)
-
-```bash
-cd api
-cargo run
-```
-
-### Autocomplete Service (autocomplete)
-
-```bash
+# Autocomplete
 cd autocomplete
 cargo run
 ```
 
 ## MCP Server
 
-An MCP (Model Context Protocol) server is available for integration with MCP-compatible tools. 
+An MCP (Model Context Protocol) server is available for integration with MCP-compatible tools.
 You can connect your LLM with https://hecate.pantheon-hds.com/mcp/sse to try it out.
 To build and run locally see the [mcp/README.md](./mcp/README.md) for more details.
-
-## Tech
-
-The application uses:
-
-- **Frontend**: React 19 with TypeScript and Vite
-- **Backend**: Rust components with Actix
-- **Database**: PostgreSQL for vocabulary
-- **Vector DB**: Qdrant for semantic search embeddings
-
-
