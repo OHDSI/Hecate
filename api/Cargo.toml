@@ -8,6 +8,7 @@ name = "write_pairs"
 path = "src/bin/write_pairs.rs"
 
 [dependencies]
+anyhow = "1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 actix-cors = "0.7.1"
 actix-web = { version = "4.13.0" }

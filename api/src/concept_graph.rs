@@ -11,6 +11,7 @@ use std::time::Instant;
 pub struct ConceptExpander;
 
 impl ConceptExpander {
+    #[allow(clippy::too_many_arguments)]
     pub async fn expand(
         client: &Client,
         expand_cache: &Cache<ExpandCacheKey, ExpandResponse>,

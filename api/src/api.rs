@@ -75,7 +75,9 @@ async fn process_search_results(
                     let score = sr.score.unwrap();
 
                     // Keep the highest score for each concept_id
-                    if let Some((_, existing_score)) = all_concepts.get(&filtered_concept.concept_id) {
+                    if let Some((_, existing_score)) =
+                        all_concepts.get(&filtered_concept.concept_id)
+                    {
                         if score > *existing_score {
                             all_concepts.insert(
                                 filtered_concept.concept_id,
@@ -128,7 +130,9 @@ async fn process_search_results(
     if concept_map.len() > limit {
         let mut concepts_vec: Vec<(i32, (Concept, f64))> = concept_map.drain().collect();
         concepts_vec.sort_by(|a, b| {
-            b.1.1.partial_cmp(&a.1.1).unwrap_or(std::cmp::Ordering::Equal)
+            b.1.1
+                .partial_cmp(&a.1.1)
+                .unwrap_or(std::cmp::Ordering::Equal)
         });
         concepts_vec.truncate(limit);
         *concept_map = concepts_vec.into_iter().collect();
@@ -146,7 +150,10 @@ async fn search_standard(
     let mut query_string = format!("q={}", parameters.q);
     if let Some(exclude_vocab_ids) = &parameters.exclude_vocabulary_id {
         let exclude_vocab_str = exclude_vocab_ids.join(",");
-        query_string.push_str(&format!("&exclude_vocabulary_id={}&limit=250", exclude_vocab_str));
+        query_string.push_str(&format!(
+            "&exclude_vocabulary_id={}&limit=250",
+            exclude_vocab_str
+        ));
     }
     let resp = search(
         Query::from_query(&query_string)?,
@@ -462,7 +469,10 @@ async fn create_response_from_vector_db_ids(
         if let Some(vectors) = &first_point.vectors {
             match vectors.vectors_options.as_ref() {
                 Some(qdrant::vectors_output::VectorsOptions::Vector(vector)) => {
-                    Some(vector.data.clone())
+                    match vector.clone().into_vector() {
+                        qdrant::vector_output::Vector::Dense(dense) => Some(dense.data),
+                        _ => None,
+                    }
                 }
                 _ => None,
             }
@@ -531,12 +541,11 @@ async fn create_response_from_vector_db_ids(
     // Add neighbours, but exclude items that were already in search_result
     for scored_point in neighbours {
         // Skip if this point was already added from search_result
-        if let Some(id) = &scored_point.id {
-            if let Some(PointIdOptions::Uuid(uuid)) = &id.point_id_options {
-                if search_result_ids.contains(uuid) {
-                    continue;
-                }
-            }
+        if let Some(id) = &scored_point.id
+            && let Some(PointIdOptions::Uuid(uuid)) = &id.point_id_options
+            && search_result_ids.contains(uuid)
+        {
+            continue;
         }
         let mut concept = SearchResponse::from(scored_point);
         // Apply filters after retrieval due to performance issues with filtering in qdrant
