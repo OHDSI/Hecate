@@ -1,15 +1,17 @@
-use actix_cors::Cors;
-use actix_web::web::{Data, Query};
-use actix_web::{App, HttpResponse, HttpServer, get};
-use indicium::simple::{AutocompleteType, SearchIndex, SearchIndexBuilder};
-use log::{LevelFilter, info};
-use serde::Deserialize;
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-#[derive(Deserialize)]
+use actix_cors::Cors;
+use actix_web::web::{Data, Query};
+use actix_web::{App, HttpResponse, HttpServer, get};
+use anyhow::Context;
+use indicium::simple::{AutocompleteType, SearchIndex, SearchIndexBuilder};
+use log::{LevelFilter, info};
+use serde::Deserialize;
+
+#[derive(Debug, Deserialize)]
 struct Parameters {
     q: String,
 }
@@ -21,15 +23,15 @@ async fn lookup(
 ) -> HttpResponse {
     let q = parameters.q.as_str();
     let suggestions = search_index.autocomplete(q);
-    info!("Found [{}] suggestions for [{}]", &suggestions.len(), &q);
+    info!("Found [{}] suggestions for [{}]", suggestions.len(), q);
     HttpResponse::Ok().json(suggestions)
 }
 
 #[tokio::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> anyhow::Result<()> {
     env_logger::builder().filter_level(LevelFilter::Info).init();
     info!("Starting Autocomplete Service");
-    let app_data = load_app_data();
+    let app_data = load_app_data()?;
 
     HttpServer::new(move || {
         let cors = Cors::default()
@@ -43,28 +45,30 @@ async fn main() -> std::io::Result<()> {
     .bind("127.0.0.1:8081")?
     .run()
     .await
+    .context("HTTP server failed")
 }
 
-fn load_app_data() -> Data<SearchIndex<u32>> {
-    let items = read_lines_from_file("./sample_values.txt");
+fn load_app_data() -> anyhow::Result<Data<SearchIndex<u32>>> {
+    let items = read_lines_from_file("./sample_values.txt")?;
     let autocomplete = create_search_index(items);
-    Data::new(autocomplete)
+    Ok(Data::new(autocomplete))
 }
 
-fn read_lines_from_file(filename: impl AsRef<Path>) -> HashSet<String> {
-    info!("Reading lines from file");
-    let file = File::open(filename).expect("no such file");
+fn read_lines_from_file(filename: &str) -> anyhow::Result<HashSet<String>> {
+    let path = Path::new(filename);
+    info!("Reading lines from file: {}", path.display());
+    let file = File::open(path).with_context(|| format!("failed to open {}", path.display()))?;
     let buf = BufReader::new(file);
     buf.lines()
-        .map(|l| l.expect("Could not parse line"))
-        .collect()
+        .collect::<Result<HashSet<String>, _>>()
+        .context("failed to read line from file")
 }
 
 fn create_search_index(values: HashSet<String>) -> SearchIndex<u32> {
     info!("Creating search index");
     let mut search_index = init_search_index();
-    for (count, value) in (0_u32..).zip(values.into_iter()) {
-        search_index.insert(&count, &value);
+    for (i, value) in values.into_iter().enumerate() {
+        search_index.insert(&(i as u32), &value);
     }
     search_index
 }
