@@ -23,7 +23,6 @@ async fn lookup(
 ) -> HttpResponse {
     let q = parameters.q.as_str();
     let suggestions = search_index.autocomplete(q);
-    info!("Found [{}] suggestions for [{}]", suggestions.len(), q);
     HttpResponse::Ok().json(suggestions)
 }
 
