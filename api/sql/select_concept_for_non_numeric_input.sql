@@ -1,3 +1,3 @@
 SELECT concept_name
-FROM vocab_27_AUG_25.concept
+FROM {VOCAB_SCHEMA}.concept
 WHERE concept_code = $1

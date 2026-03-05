@@ -9,8 +9,8 @@ SELECT DISTINCT c.concept_id,
                 c.valid_start_date,
                 c.valid_end_date,
                 0::bigint as record_count
-FROM vocab_27_AUG_25.concept_ancestor a,
-     vocab_27_AUG_25.concept c
+FROM {VOCAB_SCHEMA}.concept_ancestor a,
+     {VOCAB_SCHEMA}.concept c
 WHERE a.ancestor_concept_id = $1
   AND c.concept_id = a.descendant_concept_id
   AND a.descendant_concept_id != a.ancestor_concept_id

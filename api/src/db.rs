@@ -3,15 +3,24 @@ use crate::errors::PgError;
 use deadpool_postgres::Client;
 use log::info;
 use moka::future::Cache;
+use std::sync::LazyLock;
 use tokio_pg_mapper::FromTokioPostgresRow;
+
+static VOCAB_SCHEMA: LazyLock<String> = LazyLock::new(|| {
+    std::env::var("VOCAB_SCHEMA").expect("VOCAB_SCHEMA env variable must be set")
+});
+
+fn sql(template: &str) -> String {
+    template.replace("{VOCAB_SCHEMA}", &VOCAB_SCHEMA)
+}
 
 pub async fn get_concept_name_by_number(
     client: &Client,
     input: i32,
 ) -> Result<Vec<String>, PgError> {
     info!("Checking vocabulary for {}", &input.to_string());
-    let stmt = include_str!("../sql/select_concept_for_numeric_input.sql");
-    let stmt = client.prepare(stmt).await?;
+    let stmt = sql(include_str!("../sql/select_concept_for_numeric_input.sql"));
+    let stmt = client.prepare(&stmt).await?;
 
     let results = client
         .query(&stmt, &[&input, &input.to_string()])
@@ -25,8 +34,8 @@ pub async fn get_concept_name_by_number(
 
 pub async fn get_concept_by_id(client: &Client, input: i32) -> Result<Concept, PgError> {
     info!("Checking vocabulary for {}", &input.to_string());
-    let stmt = include_str!("../sql/select_concept_by_id.sql");
-    let stmt = client.prepare(stmt).await?;
+    let stmt = sql(include_str!("../sql/select_concept_by_id.sql"));
+    let stmt = client.prepare(&stmt).await?;
 
     let result = client
         .query(&stmt, &[&input])
@@ -44,8 +53,8 @@ pub async fn get_concept_relationships(
     input: i32,
 ) -> Result<Vec<RelatedConcept>, PgError> {
     info!("Checking vocabulary for {}", &input.to_string());
-    let stmt = include_str!("../sql/select_related_concepts.sql");
-    let stmt = client.prepare(stmt).await?;
+    let stmt = sql(include_str!("../sql/select_related_concepts.sql"));
+    let stmt = client.prepare(&stmt).await?;
 
     let results = client
         .query(&stmt, &[&input])
@@ -62,8 +71,8 @@ pub async fn get_concept_phoebe(
     input: i32,
 ) -> Result<Vec<RelatedConcept>, PgError> {
     info!("Checking vocabulary for {}", &input.to_string());
-    let stmt = include_str!("../sql/select_phoebe_concepts.sql");
-    let stmt = client.prepare(stmt).await?;
+    let stmt = sql(include_str!("../sql/select_phoebe_concepts.sql"));
+    let stmt = client.prepare(&stmt).await?;
 
     let results = client
         .query(&stmt, &[&input])
@@ -80,8 +89,8 @@ pub async fn get_concept_name_by_string(
     input: String,
 ) -> Result<Vec<String>, PgError> {
     info!("Checking vocabulary for {}", &input.to_string());
-    let stmt = include_str!("../sql/select_concept_for_non_numeric_input.sql");
-    let stmt = client.prepare(stmt).await?;
+    let stmt = sql(include_str!("../sql/select_concept_for_non_numeric_input.sql"));
+    let stmt = client.prepare(&stmt).await?;
 
     let results = client
         .query(&stmt, &[&input])
@@ -112,10 +121,11 @@ pub async fn get_batch_descendant_concepts(
     let placeholders: Vec<String> = (1..=concept_ids.len()).map(|i| format!("${}", i)).collect();
     let sql = format!(
         "SELECT ancestor_concept_id, descendant_concept_id as concept_id
-         FROM vocab_27_AUG_25.concept_ancestor 
-         WHERE ancestor_concept_id IN ({})
+         FROM {schema}.concept_ancestor
+         WHERE ancestor_concept_id IN ({placeholders})
            AND min_levels_of_separation > 0",
-        placeholders.join(", ")
+        schema = *VOCAB_SCHEMA,
+        placeholders = placeholders.join(", ")
     );
 
     let stmt = client.prepare(&sql).await?;
@@ -163,11 +173,12 @@ pub async fn get_batch_mapped_concepts(
     let placeholders: Vec<String> = (1..=concept_ids.len()).map(|i| format!("${}", i)).collect();
     let sql = format!(
         "SELECT cr.concept_id_2 as source_concept_id, cr.concept_id_1 as mapped_concept_id
-         FROM vocab_27_AUG_25.concept_relationship cr
-         WHERE cr.concept_id_2 IN ({})
-           AND cr.relationship_id = 'Maps to' 
+         FROM {schema}.concept_relationship cr
+         WHERE cr.concept_id_2 IN ({placeholders})
+           AND cr.relationship_id = 'Maps to'
            AND cr.invalid_reason IS NULL",
-        placeholders.join(", ")
+        schema = *VOCAB_SCHEMA,
+        placeholders = placeholders.join(", ")
     );
 
     let stmt = client.prepare(&sql).await?;
@@ -242,8 +253,8 @@ async fn get_concept_descendants(
     concept_id: i32,
     levels_of_separation: i32,
 ) -> Result<Vec<Concept>, PgError> {
-    let stmt = include_str!("../sql/select_concept_descendants.sql");
-    let stmt = client.prepare(stmt).await?;
+    let stmt = sql(include_str!("../sql/select_concept_descendants.sql"));
+    let stmt = client.prepare(&stmt).await?;
 
     let results = client
         .query(&stmt, &[&concept_id, &levels_of_separation])
@@ -260,8 +271,8 @@ async fn get_concept_ancestors(
     concept_id: i32,
     levels_of_separation: i32,
 ) -> Result<Vec<Concept>, PgError> {
-    let stmt = include_str!("../sql/select_concept_ancestors.sql");
-    let stmt = client.prepare(stmt).await?;
+    let stmt = sql(include_str!("../sql/select_concept_ancestors.sql"));
+    let stmt = client.prepare(&stmt).await?;
 
     let results = client
         .query(&stmt, &[&concept_id, &levels_of_separation])
@@ -274,8 +285,8 @@ async fn get_concept_ancestors(
 }
 
 pub async fn map_to_standard(client: &Client, concept_id: i32) -> Result<Vec<Concept>, PgError> {
-    let stmt = include_str!("../sql/select_concepts_by_relation.sql");
-    let stmt = client.prepare(stmt).await?;
+    let stmt = sql(include_str!("../sql/select_concepts_by_relation.sql"));
+    let stmt = client.prepare(&stmt).await?;
 
     let results = client
         .query(&stmt, &[&concept_id, &"Maps to"])

@@ -1,4 +1,4 @@
 SELECT concept_name
-FROM vocab_27_AUG_25.concept
+FROM {VOCAB_SCHEMA}.concept
 WHERE concept_id = $1
    OR concept_code = $2

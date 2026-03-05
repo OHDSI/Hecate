@@ -14,20 +14,18 @@ covered separately.
 
 ### Load the OHDSI vocabulary
 
-The API expects the OHDSI vocabulary tables under a schema called `vocab_27_AUG_25`.
+The API expects the OHDSI vocabulary tables under a dedicated schema. The schema name is configured via the
+`VOCAB_SCHEMA` environment variable in your `.env` file (e.g., `VOCAB_SCHEMA=vocab_27_feb_2026`).
 
 You need to obtain the OHDSI vocabulary CSV files from [Athena](https://athena.ohdsi.org/). Download the vocabulary
 bundle and load the following tables:
 
 ```sql
-CREATE SCHEMA vocab_27_AUG_25;
+CREATE SCHEMA vocab_27_feb_2026;  -- must match your VOCAB_SCHEMA env var
 
 -- The core tables needed:
 -- concept, concept_relationship, concept_ancestor, concept_synonym, relationship
 ```
-
-> **Note:** The schema name `vocab_27_AUG_25` is hardcoded in the SQL query files under `api/sql/`. If you want a
-> different schema name, update all `.sql` files accordingly.
 
 ### Load Phoebe (optional)
 
@@ -35,7 +33,7 @@ Phoebe provides recommended concept relationships. To enable the `/api/concepts/
 the Phoebe data into the same schema:
 
 ```sql
-CREATE TABLE vocab_27_AUG_25.phoebe
+CREATE TABLE vocab_27_feb_2026.phoebe  -- must match your VOCAB_SCHEMA env var
 (
     concept_id_1    INTEGER,
     concept_id_2    INTEGER,
@@ -117,6 +115,9 @@ PG__PORT=5432
 PG__USER=your_pg_user
 PG__PASSWORD=your_pg_password
 PG__DBNAME=hecate
+
+# Vocabulary schema name (updated ~twice a year with new OHDSI releases)
+VOCAB_SCHEMA=vocab_27_feb_2026
 
 # Cache settings (optional, these are the defaults)
 CACHE_MAX_CAPACITY=64
