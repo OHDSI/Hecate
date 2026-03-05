@@ -36,13 +36,9 @@ pub async fn get_concept_by_id(client: &Client, input: i32) -> Result<Concept, P
     let stmt = sql(include_str!("../sql/select_concept_by_id.sql"));
     let stmt = client.prepare(&stmt).await?;
 
-    let result = client
-        .query(&stmt, &[&input])
-        .await?
-        .iter()
-        .map(|row| Concept::from_row(row.clone()).unwrap())
-        .next_back()
-        .unwrap();
+    let rows = client.query(&stmt, &[&input]).await?;
+    let row = rows.first().ok_or(PgError::NotFound)?;
+    let result = Concept::from_row(row.clone())?;
 
     Ok(result)
 }
@@ -55,12 +51,11 @@ pub async fn get_concept_relationships(
     let stmt = sql(include_str!("../sql/select_related_concepts.sql"));
     let stmt = client.prepare(&stmt).await?;
 
-    let results = client
-        .query(&stmt, &[&input])
-        .await?
+    let rows = client.query(&stmt, &[&input]).await?;
+    let results = rows
         .iter()
-        .map(|row| RelatedConcept::from_row(row.clone()).unwrap())
-        .collect::<Vec<RelatedConcept>>();
+        .map(|row| RelatedConcept::from_row(row.clone()))
+        .collect::<Result<Vec<RelatedConcept>, _>>()?;
 
     Ok(results)
 }
@@ -73,12 +68,11 @@ pub async fn get_concept_phoebe(
     let stmt = sql(include_str!("../sql/select_phoebe_concepts.sql"));
     let stmt = client.prepare(&stmt).await?;
 
-    let results = client
-        .query(&stmt, &[&input])
-        .await?
+    let rows = client.query(&stmt, &[&input]).await?;
+    let results = rows
         .iter()
-        .map(|row| RelatedConcept::from_row(row.clone()).unwrap())
-        .collect::<Vec<RelatedConcept>>();
+        .map(|row| RelatedConcept::from_row(row.clone()))
+        .collect::<Result<Vec<RelatedConcept>, _>>()?;
 
     Ok(results)
 }
@@ -261,8 +255,8 @@ async fn get_concept_descendants(
         .query(&stmt, &[&concept_id, &levels_of_separation])
         .await?
         .iter()
-        .map(|row| Concept::from_row(row.clone()).unwrap())
-        .collect::<Vec<Concept>>();
+        .map(|row| Concept::from_row(row.clone()))
+        .collect::<Result<Vec<Concept>, _>>()?;
 
     Ok(results)
 }
@@ -279,8 +273,8 @@ async fn get_concept_ancestors(
         .query(&stmt, &[&concept_id, &levels_of_separation])
         .await?
         .iter()
-        .map(|row| Concept::from_row(row.clone()).unwrap())
-        .collect::<Vec<Concept>>();
+        .map(|row| Concept::from_row(row.clone()))
+        .collect::<Result<Vec<Concept>, _>>()?;
 
     Ok(results)
 }
@@ -293,7 +287,9 @@ pub async fn map_to_standard(client: &Client, concept_id: i32) -> Result<Vec<Con
         .query(&stmt, &[&concept_id, &"Maps to"])
         .await?
         .iter()
-        .map(|row| Concept::from_row(row.clone()).unwrap())
+        .map(|row| Concept::from_row(row.clone()))
+        .collect::<Result<Vec<Concept>, _>>()?
+        .into_iter()
         .filter(|concept| {
             concept
                 .standard_concept

@@ -122,7 +122,7 @@ impl ValidationResult {
 
         if let Some(recommendations) = &self.recommendations {
             result["recommendations"] =
-                serde_json::to_value(recommendations).unwrap_or(serde_json::json!(null));
+                serde_json::to_value(recommendations).unwrap_or(serde_json::Value::Null);
         }
 
         result
@@ -596,8 +596,11 @@ async fn query_and_process_recommendations(
     }
 
     // Sort by similarity score (descending) and limit results
-    all_recommendations
-        .sort_by(|a, b| b.similarity_score.partial_cmp(&a.similarity_score).unwrap());
+    all_recommendations.sort_by(|a, b| {
+        b.similarity_score
+            .partial_cmp(&a.similarity_score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     let total_count = all_recommendations.len();
 
     // Get vocabularies from the original concept set (not from recommendations)

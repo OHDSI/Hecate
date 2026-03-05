@@ -9,6 +9,7 @@ path = "src/bin/write_pairs.rs"
 
 [dependencies]
 anyhow = "1"
+thiserror = "2"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 actix-cors = "0.7.1"
 actix-web = { version = "4.13.0" }
@@ -16,7 +17,6 @@ async-openai = { version = "0.33.0", features = ["embedding"] }
 chrono = { version = "0.4.44", features = ["serde" ] }
 confik = "0.15.1"
 deadpool-postgres = { version = "0.14.1", features = ["serde"] }
-derive_more =  { version = "2.1.1", features = ["full"] }
 dotenvy = "0.15.7"
 env_logger = "0.11.9"
 log = "0.4.29"
