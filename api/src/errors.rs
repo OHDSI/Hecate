@@ -1,25 +1,26 @@
 use actix_web::{HttpResponse, ResponseError};
 use deadpool_postgres::PoolError;
-use derive_more::{Display, Error, From};
+use thiserror::Error;
 use tokio_pg_mapper::Error as PGMError;
 use tokio_postgres::error::Error as PGError;
 
-#[derive(Debug, Display, Error, From)]
-#[allow(dead_code)]
+#[derive(Debug, Error)]
 pub enum PgError {
+    #[error("resource not found")]
     NotFound,
-    PGError(PGError),
-    PGMError(PGMError),
-    PoolError(PoolError),
+    #[error("database error: {0}")]
+    PGError(#[from] PGError),
+    #[error("row mapping error: {0}")]
+    PGMError(#[from] PGMError),
+    #[error("connection pool error: {0}")]
+    PoolError(#[from] PoolError),
 }
 
 impl ResponseError for PgError {
     fn error_response(&self) -> HttpResponse {
-        match *self {
+        match self {
             PgError::NotFound => HttpResponse::NotFound().finish(),
-            PgError::PoolError(ref err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            PgError::PoolError(err) => HttpResponse::InternalServerError().body(err.to_string()),
             _ => HttpResponse::InternalServerError().finish(),
         }
     }

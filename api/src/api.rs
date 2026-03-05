@@ -72,7 +72,7 @@ async fn process_search_results(
                 );
                 if !filtered_concepts.is_empty() {
                     let filtered_concept = &filtered_concepts[0];
-                    let score = sr.score.unwrap();
+                    let score = sr.score.unwrap_or(0.0);
 
                     // Keep the highest score for each concept_id
                     if let Some((_, existing_score)) =
@@ -100,7 +100,7 @@ async fn process_search_results(
                     &state.concept_record_counts,
                 );
                 for std_concept in filtered_standard_concepts {
-                    let score = sr.score.unwrap();
+                    let score = sr.score.unwrap_or(0.0);
 
                     // Keep the highest score for each concept_id
                     if let Some((_, existing_score)) = all_concepts.get(&std_concept.concept_id) {
@@ -257,9 +257,8 @@ async fn search(
     } else {
         info!("Nothing found in search index");
         let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
-        let numeric_id = input.parse::<i32>();
-        let concepts = match numeric_id {
-            Ok(_) => db::get_concept_name_by_number(&pg_client, numeric_id.unwrap()).await?,
+        let concepts = match input.parse::<i32>() {
+            Ok(id) => db::get_concept_name_by_number(&pg_client, id).await?,
             Err(_) => db::get_concept_name_by_string(&pg_client, input.to_string()).await?,
         };
 
@@ -276,7 +275,11 @@ async fn search(
                     item.iter().for_each(|x| ids.push(x.to_string()))
                 } else {
                     let results: Vec<RetrievedPoint> =
-                        find_by_concept_name_lower(client, lower, collection_name).await;
+                        find_by_concept_name_lower(client, lower, collection_name)
+                            .await
+                            .map_err(|e| {
+                                actix_web::error::ErrorInternalServerError(e.to_string())
+                            })?;
                     results.iter().for_each(|x| {
                         if let PointIdOptions::Uuid(id) =
                             x.clone().id.unwrap().point_id_options.unwrap()
@@ -291,7 +294,9 @@ async fn search(
             // Request more results from qdrant to account for filtering
             let search_limit = 250;
             let recommendations =
-                recommend(input.to_string(), client, search_limit, collection_name).await;
+                recommend(input.to_string(), client, search_limit, collection_name)
+                    .await
+                    .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
             for sp in recommendations {
                 let mut concept: SearchResponse = SearchResponse::from(sp);
                 // Apply filters after retrieval due to performance issues with filtering in qdrant
@@ -417,10 +422,14 @@ async fn get_concept_definition(
     info!("Get concept {} definition", &id);
     let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
     let concept = db::get_concept_by_id(&pg_client, id).await?;
-    let def = get_umls_definition_from_nlm(concept.concept_name)
-        .await
-        .unwrap()
-        .unwrap_or("No definition available".parse()?);
+    let def = match get_umls_definition_from_nlm(concept.concept_name).await {
+        Ok(Some(definition)) => definition,
+        Ok(None) => "No definition available".to_string(),
+        Err(e) => {
+            log::warn!("UMLS lookup failed: {}", e);
+            "No definition available".to_string()
+        }
+    };
     Ok(HttpResponse::Ok().json(def))
 }
 
@@ -461,7 +470,9 @@ async fn create_response_from_vector_db_ids(
     collection_name: &str,
     record_counts: &HashMap<i32, i64>,
 ) -> Result<Vec<SearchResponse>, Error> {
-    let search_result = retrieve_point_from_db(client, points, collection_name).await;
+    let search_result = retrieve_point_from_db(client, points, collection_name)
+        .await
+        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
     let limit = parameters.limit.unwrap_or(100);
 
     // Extract vector from the first matched point to use for search
@@ -492,7 +503,7 @@ async fn create_response_from_vector_db_ids(
                     .score_threshold(0.50),
             )
             .await
-            .unwrap()
+            .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?
             .result
     } else {
         Vec::new()
@@ -588,8 +599,8 @@ async fn find_by_concept_name_lower(
     client: &Qdrant,
     concept_name_lower: String,
     collection: &str,
-) -> Vec<RetrievedPoint> {
-    client
+) -> Result<Vec<RetrievedPoint>, anyhow::Error> {
+    Ok(client
         .scroll(
             ScrollPointsBuilder::new(collection).filter(Filter::must([Condition {
                 condition_one_of: Some(ConditionOneOf::Field(qdrant::FieldCondition {
@@ -608,25 +619,23 @@ async fn find_by_concept_name_lower(
                 })),
             }])),
         )
-        .await
-        .unwrap()
-        .result
+        .await?
+        .result)
 }
 
 async fn retrieve_point_from_db(
     client: &Qdrant,
     points: Vec<PointId>,
     collection: &str,
-) -> Vec<RetrievedPoint> {
-    client
+) -> Result<Vec<RetrievedPoint>, anyhow::Error> {
+    Ok(client
         .get_points(
             GetPointsBuilder::new(collection, points)
                 .with_vectors(true)
                 .with_payload(true),
         )
-        .await
-        .unwrap()
-        .result
+        .await?
+        .result)
 }
 
 async fn recommend(
@@ -634,13 +643,12 @@ async fn recommend(
     client: &Qdrant,
     limit: u64,
     collection_name: &str,
-) -> Vec<ScoredPoint> {
-    let vector = fetch_embeddings(input).await.unwrap().embedding;
-    client
+) -> Result<Vec<ScoredPoint>, anyhow::Error> {
+    let vector = fetch_embeddings(input).await?.embedding;
+    Ok(client
         .search_points(SearchPointsBuilder::new(collection_name, vector, limit).with_payload(true))
-        .await
-        .unwrap()
-        .result
+        .await?
+        .result)
 }
 
 fn filter_and_enrich_concepts(

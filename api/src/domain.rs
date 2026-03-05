@@ -43,7 +43,18 @@ impl SearchResponse {
 
 impl From<ScoredPoint> for SearchResponse {
     fn from(item: ScoredPoint) -> Self {
-        let payload = serde_json::to_string(&item.payload).unwrap();
+        let payload = match serde_json::to_string(&item.payload) {
+            Ok(p) => p,
+            Err(e) => {
+                log::error!("Failed to serialize ScoredPoint payload: {}", e);
+                return SearchResponse {
+                    concept_name: String::new(),
+                    concept_name_lower: String::new(),
+                    score: Some(0f64),
+                    concepts: Vec::new(),
+                };
+            }
+        };
         let res: Result<SearchResponse, _> = serde_json::from_str(&payload);
         match res {
             Ok(mut concept) => {
@@ -69,15 +80,38 @@ impl From<ScoredPoint> for SearchResponse {
 
 impl From<RetrievedPoint> for SearchResponse {
     fn from(item: RetrievedPoint) -> Self {
-        let payload = serde_json::to_string(&item.payload).unwrap();
-        let mut concept: SearchResponse = serde_json::from_str(&payload).unwrap();
-        concept.score = Some(1f64);
-        // Update concept_name to use standard concept name if available
-        if let Some(standard_name) = concept.find_standard_concept_name() {
-            concept.concept_name = standard_name;
-            concept.concept_name_lower = concept.concept_name.to_lowercase();
+        let payload = match serde_json::to_string(&item.payload) {
+            Ok(p) => p,
+            Err(e) => {
+                log::error!("Failed to serialize RetrievedPoint payload: {}", e);
+                return SearchResponse {
+                    concept_name: String::new(),
+                    concept_name_lower: String::new(),
+                    score: Some(1f64),
+                    concepts: Vec::new(),
+                };
+            }
+        };
+        let res: Result<SearchResponse, _> = serde_json::from_str(&payload);
+        match res {
+            Ok(mut concept) => {
+                concept.score = Some(1f64);
+                if let Some(standard_name) = concept.find_standard_concept_name() {
+                    concept.concept_name = standard_name;
+                    concept.concept_name_lower = concept.concept_name.to_lowercase();
+                }
+                concept
+            }
+            Err(_) => {
+                log::error!("Failed to deserialize RetrievedPoint payload");
+                SearchResponse {
+                    concept_name: String::new(),
+                    concept_name_lower: String::new(),
+                    score: Some(1f64),
+                    concepts: Vec::new(),
+                }
+            }
         }
-        concept
     }
 }
 
