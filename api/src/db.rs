@@ -3,6 +3,7 @@ use crate::errors::PgError;
 use deadpool_postgres::Client;
 use log::info;
 use moka::future::Cache;
+use std::collections::HashMap;
 use std::sync::LazyLock;
 use tokio_pg_mapper::FromTokioPostgresRow;
 
@@ -17,7 +18,7 @@ pub async fn get_concept_name_by_number(
     client: &Client,
     input: i32,
 ) -> Result<Vec<String>, PgError> {
-    info!("Checking vocabulary for {}", &input.to_string());
+    info!("Checking vocabulary for {}", input);
     let stmt = sql(include_str!("../sql/select_concept_for_numeric_input.sql"));
     let stmt = client.prepare(&stmt).await?;
 
@@ -32,7 +33,7 @@ pub async fn get_concept_name_by_number(
 }
 
 pub async fn get_concept_by_id(client: &Client, input: i32) -> Result<Concept, PgError> {
-    info!("Checking vocabulary for {}", &input.to_string());
+    info!("Checking vocabulary for {}", input);
     let stmt = sql(include_str!("../sql/select_concept_by_id.sql"));
     let stmt = client.prepare(&stmt).await?;
 
@@ -47,7 +48,7 @@ pub async fn get_concept_relationships(
     client: &Client,
     input: i32,
 ) -> Result<Vec<RelatedConcept>, PgError> {
-    info!("Checking vocabulary for {}", &input.to_string());
+    info!("Checking vocabulary for {}", input);
     let stmt = sql(include_str!("../sql/select_related_concepts.sql"));
     let stmt = client.prepare(&stmt).await?;
 
@@ -64,7 +65,7 @@ pub async fn get_concept_phoebe(
     client: &Client,
     input: i32,
 ) -> Result<Vec<RelatedConcept>, PgError> {
-    info!("Checking vocabulary for {}", &input.to_string());
+    info!("Checking vocabulary for {}", input);
     let stmt = sql(include_str!("../sql/select_phoebe_concepts.sql"));
     let stmt = client.prepare(&stmt).await?;
 
@@ -79,9 +80,9 @@ pub async fn get_concept_phoebe(
 
 pub async fn get_concept_name_by_string(
     client: &Client,
-    input: String,
+    input: &str,
 ) -> Result<Vec<String>, PgError> {
-    info!("Checking vocabulary for {}", &input.to_string());
+    info!("Checking vocabulary for {}", input);
     let stmt = sql(include_str!(
         "../sql/select_concept_for_non_numeric_input.sql"
     ));
@@ -100,9 +101,7 @@ pub async fn get_concept_name_by_string(
 pub async fn get_batch_descendant_concepts(
     client: &Client,
     concept_ids: &[i32],
-) -> Result<std::collections::HashMap<i32, Vec<i32>>, PgError> {
-    use std::collections::HashMap;
-
+) -> Result<HashMap<i32, Vec<i32>>, PgError> {
     if concept_ids.is_empty() {
         return Ok(HashMap::new());
     }
@@ -155,9 +154,7 @@ pub async fn get_batch_descendant_concepts(
 pub async fn get_batch_mapped_concepts(
     client: &Client,
     concept_ids: &[i32],
-) -> Result<std::collections::HashMap<i32, Vec<i32>>, PgError> {
-    use std::collections::HashMap;
-
+) -> Result<HashMap<i32, Vec<i32>>, PgError> {
     if concept_ids.is_empty() {
         return Ok(HashMap::new());
     }

@@ -30,7 +30,7 @@ struct NLMConcept {
     pub definition: Option<String>,
 }
 
-pub async fn get_umls_definition_from_nlm(concept: String) -> Result<Option<String>, UmlsError> {
+pub async fn get_umls_definition_from_nlm(concept: &str) -> Result<Option<String>, UmlsError> {
     let api_key = std::env::var("UMLS_API_KEY").map_err(|_| UmlsError::MissingApiKey)?;
     let url = format!(
         "https://uts-ws.nlm.nih.gov/esearch/es/current?apiKey={}",
