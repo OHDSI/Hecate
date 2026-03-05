@@ -83,10 +83,20 @@ The API loads two JSON files into memory at startup for performance:
 
 ### Concept index file (`vectordb_data_path`)
 
-A JSON file mapping lowercased concept names to their Qdrant point UUIDs (`HashMap<String, Vec<UUID>>`).
+A txt file mapping lowercased concept names to their Qdrant point UUIDs (`HashMap<String, Vec<UUID>>`).
 
-This can be generated from Qdrant using the `get_all_id_value_pairs` function in `api/src/qdrant.rs`, which scrolls
-through all points in the `meddra` collection and builds the mapping.
+This can be generated from Qdrant using the `write_pairs` binary, which scrolls through all points in the
+collection and builds the mapping:
+
+```bash
+cd api
+cargo run --bin write_pairs
+
+# Or specify a custom output path
+cargo run --bin write_pairs -- my_output.txt
+```
+
+Output defaults to `all_pairs.txt` in the current directory. Point `VECTORDB_DATA_PATH` in your `.env` to this file.
 
 ### Concept record counts file (`ConceptRecordCounts.json`)
 
@@ -106,7 +116,7 @@ Create a `.env` file in the `api/` directory (or set environment variables):
 ```env
 SERVER_ADDR=127.0.0.1:8080
 QDRANT_URI=http://localhost:6334
-VECTORDB_DATA_PATH=path/to/concept_index.json
+VECTORDB_DATA_PATH=path/to/concept_index.txt
 CORS_ORIGINS=http://localhost:5173
 
 # PostgreSQL connection (deadpool-postgres config)
