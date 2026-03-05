@@ -18,13 +18,11 @@
 //! Output defaults to `all_pairs.txt` in the current directory.
 
 use dotenvy::dotenv;
-use env_logger;
 use log::info;
 use qdrant_client::Qdrant;
 use qdrant_client::qdrant::point_id::PointIdOptions;
 use qdrant_client::qdrant::with_payload_selector::SelectorOptions;
 use qdrant_client::qdrant::{PayloadIncludeSelector, PointId, ScrollPointsBuilder};
-use serde_json;
 use std::collections::HashMap;
 use std::fs;
 use uuid::Uuid;

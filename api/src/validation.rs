@@ -52,32 +52,17 @@ pub struct ConceptSetExpression {
 
 #[derive(Debug, Deserialize)]
 pub struct ConceptSetWithMetadata {
-    pub id: Option<i32>,
-    pub name: Option<String>,
     pub expression: ConceptSetExpression,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ConceptGatheringResult {
     pub included_concepts: Vec<i32>,
-    pub included_descendants: Vec<i32>, // Will store actual descendant concept IDs
+    pub included_descendants: Vec<i32>,
     pub included_mapped: Vec<i32>,
     pub excluded_concepts: Vec<i32>,
-    pub excluded_descendants: Vec<i32>, // Will store actual descendant concept IDs
+    pub excluded_descendants: Vec<i32>,
     pub excluded_mapped: Vec<i32>,
-}
-
-impl ConceptGatheringResult {
-    pub fn new() -> Self {
-        Self {
-            included_concepts: Vec::new(),
-            included_descendants: Vec::new(),
-            included_mapped: Vec::new(),
-            excluded_concepts: Vec::new(),
-            excluded_descendants: Vec::new(),
-            excluded_mapped: Vec::new(),
-        }
-    }
 }
 
 #[derive(Debug)]
@@ -89,8 +74,8 @@ pub struct ValidationResult {
     pub recommendations: Option<ConceptRecommendations>,
 }
 
-impl ValidationResult {
-    pub fn new() -> Self {
+impl Default for ValidationResult {
+    fn default() -> Self {
         Self {
             valid: true,
             errors: Vec::new(),
@@ -98,6 +83,12 @@ impl ValidationResult {
             concept_summary: None,
             recommendations: None,
         }
+    }
+}
+
+impl ValidationResult {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn add_error(&mut self, error: String) {
@@ -155,7 +146,7 @@ fn parse_concept_set(concept_set: &str) -> Result<ConceptSetExpression, String> 
 }
 
 fn gather_concepts_from_expression(expression: &ConceptSetExpression) -> ConceptGatheringResult {
-    let mut result = ConceptGatheringResult::new();
+    let mut result = ConceptGatheringResult::default();
 
     for item in &expression.items {
         let concept_id = item.concept.concept_id;

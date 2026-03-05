@@ -18,6 +18,7 @@ use crate::domain::{Concept, ExpandCacheKey, ExpandResponse};
 use actix_cors::Cors;
 use actix_web::web::Data;
 use actix_web::{App, HttpServer};
+use anyhow::Context;
 use confik::{Configuration, EnvSource};
 use deadpool_postgres::Pool;
 use dotenvy::dotenv;
@@ -25,7 +26,6 @@ use log::{LevelFilter, info};
 use moka::future::Cache;
 use qdrant_client::Qdrant;
 use std::collections::HashMap;
-use std::error::Error;
 use std::fs;
 use std::time::Duration;
 use tokio_postgres::NoTls;
@@ -52,9 +52,11 @@ async fn main() -> std::io::Result<()> {
     let config = Configs::builder()
         .override_with(EnvSource::new())
         .try_build()
-        .unwrap();
+        .expect("Failed to load configuration");
 
-    let state = create_state(&config).await.unwrap();
+    let state = create_state(&config)
+        .await
+        .expect("Failed to initialize application state");
 
     HttpServer::new(move || {
         let mut cors = Cors::default()
@@ -83,22 +85,28 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
-async fn create_state(config: &Configs) -> Result<Data<StateWrapper>, Box<dyn Error>> {
+async fn create_state(config: &Configs) -> anyhow::Result<Data<StateWrapper>> {
     info!("Initializing Postgres pool");
-    let pg_pool = config.pg.create_pool(None, NoTls)?;
+    let pg_pool = config
+        .pg
+        .create_pool(None, NoTls)
+        .context("Failed to create Postgres pool")?;
     pg_pool
         .get()
-        .await?
+        .await
+        .context("Failed to get Postgres connection")?
         .simple_query("SELECT 1")
         .await
-        .expect("Postgres test query failed");
+        .context("Postgres test query failed")?;
 
     info!("Initializing Qdrant client");
-    let qdrant_client = Qdrant::from_url(&config.qdrant_uri).build()?;
+    let qdrant_client = Qdrant::from_url(&config.qdrant_uri)
+        .build()
+        .context("Failed to build Qdrant client")?;
     qdrant_client
         .health_check()
         .await
-        .expect("Qdrant health check failed");
+        .context("Qdrant health check failed")?;
 
     let concept_index = load_concept_index(&config.vectordb_data_path)?;
     let concept_record_counts = load_concept_record_counts()?;
@@ -136,9 +144,7 @@ async fn create_state(config: &Configs) -> Result<Data<StateWrapper>, Box<dyn Er
     Ok(state)
 }
 
-fn load_concept_index(
-    vectordb_data_path: &str,
-) -> Result<HashMap<String, Vec<Uuid>>, Box<dyn Error>> {
+fn load_concept_index(vectordb_data_path: &str) -> anyhow::Result<HashMap<String, Vec<Uuid>>> {
     info!(
         "Load all concept-vector_ids map from file: {}",
         vectordb_data_path
@@ -149,7 +155,7 @@ fn load_concept_index(
     Ok(value_ids_map)
 }
 
-fn load_concept_record_counts() -> Result<HashMap<i32, i64>, Box<dyn Error>> {
+fn load_concept_record_counts() -> anyhow::Result<HashMap<i32, i64>> {
     let path = "ConceptRecordCounts.json";
     info!("Load concept record counts from file: {}", path);
     let bytes = fs::read_to_string(path)?;

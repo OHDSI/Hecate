@@ -45,21 +45,23 @@ impl From<ScoredPoint> for SearchResponse {
     fn from(item: ScoredPoint) -> Self {
         let payload = serde_json::to_string(&item.payload).unwrap();
         let res: Result<SearchResponse, _> = serde_json::from_str(&payload);
-        if let Ok(mut concept) = res {
-            concept.score = Some(item.score as f64);
-            // Update concept_name to use standard concept name if available
-            if let Some(standard_name) = concept.find_standard_concept_name() {
-                concept.concept_name = standard_name;
-                concept.concept_name_lower = concept.concept_name.to_lowercase();
+        match res {
+            Ok(mut concept) => {
+                concept.score = Some(item.score as f64);
+                if let Some(standard_name) = concept.find_standard_concept_name() {
+                    concept.concept_name = standard_name;
+                    concept.concept_name_lower = concept.concept_name.to_lowercase();
+                }
+                concept
             }
-            concept
-        } else {
-            dbg!("{?}", item.payload);
-            SearchResponse {
-                concept_name: "String".parse().unwrap(),
-                concept_name_lower: "String".parse().unwrap(),
-                score: Some(0f64),
-                concepts: Vec::new(),
+            Err(_) => {
+                log::error!("Failed to deserialize ScoredPoint payload");
+                SearchResponse {
+                    concept_name: String::new(),
+                    concept_name_lower: String::new(),
+                    score: Some(0f64),
+                    concepts: Vec::new(),
+                }
             }
         }
     }

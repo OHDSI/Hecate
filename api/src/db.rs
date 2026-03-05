@@ -6,9 +6,8 @@ use moka::future::Cache;
 use std::sync::LazyLock;
 use tokio_pg_mapper::FromTokioPostgresRow;
 
-static VOCAB_SCHEMA: LazyLock<String> = LazyLock::new(|| {
-    std::env::var("VOCAB_SCHEMA").expect("VOCAB_SCHEMA env variable must be set")
-});
+static VOCAB_SCHEMA: LazyLock<String> =
+    LazyLock::new(|| std::env::var("VOCAB_SCHEMA").expect("VOCAB_SCHEMA env variable must be set"));
 
 fn sql(template: &str) -> String {
     template.replace("{VOCAB_SCHEMA}", &VOCAB_SCHEMA)
@@ -89,7 +88,9 @@ pub async fn get_concept_name_by_string(
     input: String,
 ) -> Result<Vec<String>, PgError> {
     info!("Checking vocabulary for {}", &input.to_string());
-    let stmt = sql(include_str!("../sql/select_concept_for_non_numeric_input.sql"));
+    let stmt = sql(include_str!(
+        "../sql/select_concept_for_non_numeric_input.sql"
+    ));
     let stmt = client.prepare(&stmt).await?;
 
     let results = client
