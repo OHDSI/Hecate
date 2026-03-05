@@ -5,7 +5,6 @@ mod db;
 mod domain;
 mod embeddings;
 mod errors;
-mod qdrant;
 mod umls;
 mod utils;
 mod validation;
