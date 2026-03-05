@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 actix-cors = "0.7.1"
 actix-web = "4.13.0"
+anyhow = "1.0"
 env_logger = "0.11.9"
 indicium = "0.6.8"
 log = "0.4.29"
