@@ -9,5 +9,5 @@ SELECT concept_id,
        valid_start_date,
        valid_end_date,
        0::bigint as record_count
-FROM vocab_27_AUG_25.concept
+FROM {VOCAB_SCHEMA}.concept
 WHERE concept_id = $1
