@@ -43,10 +43,9 @@ struct StateWrapper {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dotenv().ok();
     env_logger::builder().filter_level(LevelFilter::Info).init();
     info!("Starting Hecate API!");
-    info!("Init env");
-    dotenv().ok();
 
     info!("Load configs");
     let config = Configs::builder()

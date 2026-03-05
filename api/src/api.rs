@@ -12,8 +12,8 @@ use log::info;
 use qdrant_client::qdrant::condition::ConditionOneOf;
 use qdrant_client::qdrant::point_id::PointIdOptions;
 use qdrant_client::qdrant::{
-    Condition, Filter, GetPointsBuilder, PointId, RecommendInputBuilder, RetrievedPoint,
-    ScoredPoint, ScrollPointsBuilder, SearchPointsBuilder,
+    Condition, Filter, GetPointsBuilder, PointId, RetrievedPoint, ScoredPoint, ScrollPointsBuilder,
+    SearchPointsBuilder,
 };
 use qdrant_client::{Qdrant, qdrant};
 use serde::Deserialize;
@@ -22,7 +22,7 @@ use std::collections::HashMap;
 pub const CONCEPT_COLLECTION: &str = "meddra";
 pub const SYNONYMS_COLLECTION: &str = "synonyms";
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct Parameters {
     q: String,
     #[serde(default, deserialize_with = "deserialize_string_or_vec")]
@@ -37,12 +37,12 @@ struct Parameters {
     limit: Option<u64>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct ConceptSetValidationRequest {
     concept_set: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct ExpandParams {
     childlevels: Option<i32>,
     parentlevels: Option<i32>,
@@ -259,7 +259,7 @@ async fn search(
         let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
         let concepts = match input.parse::<i32>() {
             Ok(id) => db::get_concept_name_by_number(&pg_client, id).await?,
-            Err(_) => db::get_concept_name_by_string(&pg_client, input.to_string()).await?,
+            Err(_) => db::get_concept_name_by_string(&pg_client, input).await?,
         };
 
         if !concepts.is_empty() {
@@ -280,23 +280,24 @@ async fn search(
                             .map_err(|e| {
                                 actix_web::error::ErrorInternalServerError(e.to_string())
                             })?;
-                    results.iter().for_each(|x| {
-                        if let PointIdOptions::Uuid(id) =
-                            x.clone().id.unwrap().point_id_options.unwrap()
+                    for point in &results {
+                        if let Some(PointIdOptions::Uuid(id)) = point
+                            .id
+                            .as_ref()
+                            .and_then(|pid| pid.point_id_options.as_ref())
                         {
                             ids.push(id.to_string());
                         }
-                    });
+                    }
                 }
             }
         } else {
             let limit = parameters.limit.unwrap_or(100);
             // Request more results from qdrant to account for filtering
             let search_limit = 250;
-            let recommendations =
-                recommend(input.to_string(), client, search_limit, collection_name)
-                    .await
-                    .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+            let recommendations = recommend(input, client, search_limit, collection_name)
+                .await
+                .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
             for sp in recommendations {
                 let mut concept: SearchResponse = SearchResponse::from(sp);
                 // Apply filters after retrieval due to performance issues with filtering in qdrant
@@ -338,16 +339,10 @@ async fn search(
             return Ok(to_return);
         }
     }
-    let mut points: Vec<PointId> = Vec::new();
-    let mut recs = RecommendInputBuilder::default();
-    for id in ids {
-        points.push(PointId::from(id.as_str()));
-        recs = recs.add_positive(PointId::from(id.as_str()));
-    }
+    let points: Vec<PointId> = ids.iter().map(|id| PointId::from(id.as_str())).collect();
     create_response_from_vector_db_ids(
         client,
         to_return,
-        recs,
         points,
         &parameters,
         collection_name,
@@ -422,7 +417,7 @@ async fn get_concept_definition(
     info!("Get concept {} definition", &id);
     let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
     let concept = db::get_concept_by_id(&pg_client, id).await?;
-    let def = match get_umls_definition_from_nlm(concept.concept_name).await {
+    let def = match get_umls_definition_from_nlm(&concept.concept_name).await {
         Ok(Some(definition)) => definition,
         Ok(None) => "No definition available".to_string(),
         Err(e) => {
@@ -446,17 +441,16 @@ async fn get_concept_expand(
     );
 
     let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
-    let expand_response = ConceptExpander::expand(
+    let expander = ConceptExpander::new(
         &pg_client,
         &state.expand_cache,
         &state.children_cache,
         &state.parents_cache,
         &state.concept_record_counts,
-        id,
-        params.childlevels,
-        params.parentlevels,
-    )
-    .await?;
+    );
+    let expand_response = expander
+        .expand(id, params.childlevels, params.parentlevels)
+        .await?;
 
     Ok(HttpResponse::Ok().json(expand_response))
 }
@@ -464,7 +458,6 @@ async fn get_concept_expand(
 async fn create_response_from_vector_db_ids(
     client: &Qdrant,
     mut to_return: Vec<SearchResponse>,
-    _recs: RecommendInputBuilder,
     points: Vec<PointId>,
     parameters: &Parameters,
     collection_name: &str,
@@ -531,20 +524,20 @@ async fn create_response_from_vector_db_ids(
         if concept.concepts.is_empty() {
             continue;
         }
-        let mut didwehit = false;
+        let mut found_match = false;
         to_return = to_return
             .into_iter()
             .map(|mut every| {
                 if every.concept_name_lower.eq(&concept.concept_name_lower) {
                     every.append_concepts(&mut concept.concepts);
-                    didwehit = true;
+                    found_match = true;
                     every
                 } else {
                     every
                 }
             })
             .collect();
-        if !didwehit {
+        if !found_match {
             to_return.push(concept);
         }
     }
@@ -564,20 +557,20 @@ async fn create_response_from_vector_db_ids(
         if concept.concepts.is_empty() {
             continue;
         }
-        let mut didwehit = false;
+        let mut found_match = false;
         to_return = to_return
             .into_iter()
             .map(|mut every| {
                 if every.concept_name_lower.eq(&concept.concept_name_lower) {
                     every.append_concepts(&mut concept.concepts);
-                    didwehit = true;
+                    found_match = true;
                     every
                 } else {
                     every
                 }
             })
             .collect();
-        if !didwehit {
+        if !found_match {
             to_return.push(concept);
         }
     }
@@ -639,7 +632,7 @@ async fn retrieve_point_from_db(
 }
 
 async fn recommend(
-    input: String,
+    input: &str,
     client: &Qdrant,
     limit: u64,
     collection_name: &str,

@@ -121,8 +121,7 @@ impl ValidationResult {
         }
 
         if let Some(recommendations) = &self.recommendations {
-            result["recommendations"] =
-                serde_json::to_value(recommendations).unwrap_or(serde_json::Value::Null);
+            result["recommendations"] = serde_json::to_value(recommendations).unwrap_or_default();
         }
 
         result
@@ -365,12 +364,6 @@ pub async fn analyze_concept_set(
         }
     }
 
-    // TODO: Add more database validation
-    // - Verify concept IDs exist in the vocabulary
-    // - Check for invalid standard_concept values
-    // - Validate vocabulary_id, domain_id, concept_class_id
-    // - Get mapped concepts using concept_relationship table
-
     info!("Concept set analysis completed");
     Ok(result)
 }
@@ -567,9 +560,7 @@ async fn query_and_process_recommendations(
                             domain_id: concept.domain_id,
                             concept_class_id: concept.concept_class_id,
                             concept_code: concept.concept_code,
-                            standard_concept: concept
-                                .standard_concept
-                                .unwrap_or_else(|| "".to_string()),
+                            standard_concept: concept.standard_concept.unwrap_or_default(),
                             invalid_reason: concept.invalid_reason,
                             similarity_score: scored_point.score,
                             source_concept_id,
@@ -591,7 +582,7 @@ async fn query_and_process_recommendations(
             );
         }
         Err(e) => {
-            info!("Error getting recommendations from Qdrant: {}", e);
+            log::error!("Error getting recommendations from Qdrant: {}", e);
         }
     }
 
