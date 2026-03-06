@@ -22,7 +22,7 @@ const ConceptRecommendationsComponent: React.FC<
 > = ({ recommendations }) => {
   // Create initial filters for pre-selection
   const initialFilters = useMemo(() => {
-    const filters: any = {};
+    const filters: Record<string, string[]> = {};
 
     // Pre-select all returned vocabularies
     if (

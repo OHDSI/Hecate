@@ -108,6 +108,21 @@ function HecateHeader() {
             </Link>
           </div>
         </Dropdown>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginRight: "auto",
+            padding: "0 1em",
+            fontSize: 12,
+            color: "black",
+            opacity: 0.85,
+            lineHeight: 1.3,
+          }}
+        >
+          Hecate is currently being updated and may not work as smooth as you have come to expect.<br/>
+        Everything should be back to normal before Monday 9 March 00:00 CET.
+        </div>
         <img
           onClick={() => setModalOpen(true)}
           src={hecateLogo}
@@ -146,7 +161,7 @@ function HecateHeader() {
             Suggestions to improve the experience of using Hecate are always
             welcome.
             <br />
-            The current vocabulary is the 27-AUG-25 release.
+            The current vocabulary is the 27-FEB-26 release.
           </div>
         </div>
         <img

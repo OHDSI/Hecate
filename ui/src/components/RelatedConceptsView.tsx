@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RelatedConcept } from "../@types/data-source";
 import { getPhoebeConcepts, getRelatedConcepts } from "../service/concepts.tsx";
 import { Button, Table, TableProps, Tag } from "antd";
@@ -22,6 +22,29 @@ export default function RelatedConceptsView(props: {
 
   const [filteredInfo, setFilteredInfo] = useState<Filters>({});
 
+  const createCountForFilter = useCallback((concepts: string[]) => {
+    const counts = concepts.reduce<Record<string, number>>((p, c) => {
+      p[c] = (p[c] || 0) + 1;
+      return p;
+    }, {});
+    return Object.keys(counts).map((k) => ({
+      text: k + " (" + counts[k] + ")",
+      value: k,
+    }));
+  }, []);
+
+  const getFilterSelector = useCallback(
+    (field: "vocabulary_id" | "relationship_id", row: RelatedConcept[]) => {
+      const concepts: string[] = [];
+      row.forEach((r) => {
+        concepts.push(r[field]);
+      });
+      concepts.sort((a, b) => a.localeCompare(b));
+      return createCountForFilter(concepts);
+    },
+    [createCountForFilter],
+  );
+
   useEffect(() => {
     if (!phoebe) {
       getRelatedConcepts(conceptId).then((resp) => {
@@ -38,37 +61,7 @@ export default function RelatedConceptsView(props: {
         setRelationShipIdFilter(getFilterSelector("relationship_id", resp));
       });
     }
-  }, [conceptId]);
-
-  function createCountForFilter(concepts: string[]) {
-    const counts = concepts.reduce((p, c) => {
-      const name: string = c;
-      if (!Object.hasOwn(p, name)) {
-        // @ts-ignore
-        p[name as keyof typeof p] = 0;
-      }
-      p[name as keyof typeof p]++;
-      return p;
-    }, {});
-    return Object.keys(counts).map((k) => {
-      return {
-        text: k + " (" + counts[k as keyof typeof counts] + ")",
-        value: k,
-      };
-    });
-  }
-
-  function getFilterSelector(
-    field: "vocabulary_id" | "relationship_id",
-    row: RelatedConcept[],
-  ) {
-    const concepts: string[] = [];
-    row.forEach((r) => {
-      concepts.push(r[field]);
-    });
-    concepts.sort((a, b) => a.localeCompare(b));
-    return createCountForFilter(concepts);
-  }
+  }, [conceptId, getFilterSelector, phoebe]);
 
   const clearFilters = () => {
     setFilteredInfo({

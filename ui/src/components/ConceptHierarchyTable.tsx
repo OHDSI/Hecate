@@ -1,6 +1,6 @@
 import { ConceptExpandRow } from "../@types/data-source";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "../App.css";
 import { notification, Table, TableProps } from "antd";
 import { getConceptExpand } from "../service/concepts.tsx";
@@ -75,20 +75,16 @@ export default function ConceptHierarchyTable(
   ];
   const [selected, setSelected] = useState<ConceptExpandRow[]>([]);
 
-  const openNotification = () => {
+  const openNotification = useCallback(() => {
     notification.error({
       title: `Oops`,
       message:
         "Something went wrong, get in touch report issues to info@pantheon-hds.com",
       placement: "topRight",
     });
-  };
+  }, []);
 
-  useEffect(() => {
-    doSearch(conceptId);
-  }, [conceptId]);
-
-  function doSearch(conceptId: number) {
+  const doSearch = useCallback((conceptId: number) => {
     setLoading(true);
     getConceptExpand(conceptId)
       .then((r) => {
@@ -100,7 +96,11 @@ export default function ConceptHierarchyTable(
         openNotification();
         setLoading(false);
       });
-  }
+  }, [openNotification]);
+
+  useEffect(() => {
+    doSearch(conceptId);
+  }, [conceptId, doSearch]);
 
   return (
     <Table
