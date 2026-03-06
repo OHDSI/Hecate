@@ -84,19 +84,22 @@ export default function ConceptHierarchyTable(
     });
   }, []);
 
-  const doSearch = useCallback((conceptId: number) => {
-    setLoading(true);
-    getConceptExpand(conceptId)
-      .then((r) => {
-        setLoading(false);
-        setCurrentPage(1);
-        setSelected(r);
-      })
-      .catch(() => {
-        openNotification();
-        setLoading(false);
-      });
-  }, [openNotification]);
+  const doSearch = useCallback(
+    (conceptId: number) => {
+      setLoading(true);
+      getConceptExpand(conceptId)
+        .then((r) => {
+          setLoading(false);
+          setCurrentPage(1);
+          setSelected(r);
+        })
+        .catch(() => {
+          openNotification();
+          setLoading(false);
+        });
+    },
+    [openNotification],
+  );
 
   useEffect(() => {
     doSearch(conceptId);

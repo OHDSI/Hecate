@@ -109,7 +109,10 @@ export const search = async (q: string): Promise<ConceptRow[]> => {
                 ...new Set(children.map((c) => c.invalid_reason[0])),
               ],
               score: resp.score,
-              record_count: children.reduce((sum, c) => sum + (c.record_count ?? 0), 0),
+              record_count: children.reduce(
+                (sum, c) => sum + (c.record_count ?? 0),
+                0,
+              ),
               children: children,
             };
           }

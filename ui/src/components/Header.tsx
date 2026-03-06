@@ -5,9 +5,7 @@ import { Header } from "antd/es/layout/layout";
 import { Dropdown, MenuProps, Modal } from "antd";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import {
-  HubOutlined,
   InfoOutlined,
-  LoginOutlined,
   MenuOutlined,
   WorkspacesOutlined,
 } from "@mui/icons-material";
@@ -50,26 +48,6 @@ function HecateHeader() {
     },
     {
       key: "3",
-      label: (
-        <div style={{ fontSize: "large", fontFamily: "GFS Neohellenic" }}>
-          Map
-        </div>
-      ),
-      icon: <HubOutlined style={{ fontSize: "large" }} />,
-      disabled: true,
-    },
-    {
-      key: "4",
-      label: (
-        <div style={{ fontSize: "large", fontFamily: "GFS Neohellenic" }}>
-          Login
-        </div>
-      ),
-      icon: <LoginOutlined style={{ fontSize: "large" }} />,
-      disabled: true,
-    },
-    {
-      key: "5",
       label: (
         <div
           onClick={() => setModalOpen(true)}
@@ -120,8 +98,10 @@ function HecateHeader() {
             lineHeight: 1.3,
           }}
         >
-          Hecate is currently being updated and may not work as smooth as you have come to expect.<br/>
-        Everything should be back to normal before Monday 9 March 00:00 CET.
+          Hecate is currently being updated and may not work as smoothly as you
+          have come to expect.
+          <br />
+          Everything should be back to normal before Monday 9 March 00:00 CET.
         </div>
         <img
           onClick={() => setModalOpen(true)}
@@ -154,9 +134,9 @@ function HecateHeader() {
         >
           <div>
             Hecate is a semantic search engine for the OHDSI vocabulary.
-            <br /> It uses LLM embeddings and cosine similarity to provide
-            search results and aims to provide a user friendly search experience
-            that is intuitive and silky smooth.
+            <br /> It uses embeddings and cosine similarity to find search
+            results and aims to provide a user friendly search experience that
+            is intuitive and silky smooth.
             <br />
             Suggestions to improve the experience of using Hecate are always
             welcome.
@@ -173,17 +153,34 @@ function HecateHeader() {
         />
         <div>
           OpenAPI Specifications are available{" "}
-          <a href={"https://hecate.pantheon-hds.com/openapi"} target={"_blank"}>
+          <a
+            href={"https://hecate.pantheon-hds.com/openapi"}
+            target={"_blank"}
+            rel="noopener noreferrer"
+          >
             here
-            <br />
           </a>
+          <br />
           Source code is available on GitHub{" "}
-          <a href={"https://github.com/OHDSI/Hecate"} target={"_blank"}>
+          <a
+            href={"https://github.com/OHDSI/Hecate"}
+            target={"_blank"}
+            rel="noopener noreferrer"
+          >
             here
-            <br />
           </a>
+          <br />
           This public instance is provided for the OHDSI community by the
-          Erasmus MC Department of Medical Informatics
+          <a
+            href={
+              "https://www.erasmusmc.nl/en/research/departments/medical-informatics"
+            }
+            target={"_blank"}
+            rel="noopener noreferrer"
+          >
+            {" "}
+            Erasmus MC Department of Medical Informatics
+          </a>
           <br />
           info@pantheon-hds.com
         </div>
