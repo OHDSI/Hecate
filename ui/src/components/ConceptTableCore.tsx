@@ -109,7 +109,7 @@ const ConceptTableCore: React.FC<ConceptTableCoreProps> = ({
             (child) => child[field] && concepts.push(child[field][0]),
           );
         } else {
-          row[field] && concepts.push(row[field][0]);
+          if (row[field]) concepts.push(row[field][0]);
         }
       });
       concepts.sort((a, b) => a.localeCompare(b));
@@ -140,7 +140,7 @@ const ConceptTableCore: React.FC<ConceptTableCoreProps> = ({
           key: "concept_id",
           align: "left" as const,
           minWidth: 105,
-          render: (value: any, record: ConceptRow) => (
+          render: (value: number, record: ConceptRow) => (
             <div style={{ textAlign: "left" }}>
               {record.concept_id
                 ? value
@@ -195,10 +195,10 @@ const ConceptTableCore: React.FC<ConceptTableCoreProps> = ({
             : undefined,
           filters: showFilters ? filterOptions.conceptClass : undefined,
           responsive: full ? ["md" as const] : ["xxl" as const],
-          render: (_: any, row: ConceptRow) =>
+          render: (_: string[], row: ConceptRow) =>
             renderCellValue(row, "concept_class_id"),
           onFilter: showFilters
-            ? (value: any, record: ConceptRow) =>
+            ? (value: React.Key | boolean, record: ConceptRow) =>
                 record["concept_class_id"].toString().includes(value.toString())
             : undefined,
         },
@@ -210,10 +210,10 @@ const ConceptTableCore: React.FC<ConceptTableCoreProps> = ({
           filters: showFilters ? filterOptions.domain : undefined,
           responsive: full ? ["md" as const] : ["xxl" as const],
           onFilter: showFilters
-            ? (value: any, record: ConceptRow) =>
+            ? (value: React.Key | boolean, record: ConceptRow) =>
                 record.domain_id.includes(value as string)
             : undefined,
-          render: (_: any, row: ConceptRow) =>
+          render: (_: string[], row: ConceptRow) =>
             renderCellValue(row, "domain_id"),
         },
         {
@@ -224,10 +224,10 @@ const ConceptTableCore: React.FC<ConceptTableCoreProps> = ({
           filters: showFilters ? filterOptions.validity : undefined,
           responsive: full ? ["lg" as const] : ["xxl" as const],
           onFilter: showFilters
-            ? (value: any, record: ConceptRow) =>
+            ? (value: React.Key | boolean, record: ConceptRow) =>
                 record.invalid_reason.includes(value as string)
             : undefined,
-          render: (_: any, row: ConceptRow) =>
+          render: (_: string[], row: ConceptRow) =>
             renderCellValue(row, "invalid_reason"),
         },
         {
@@ -240,10 +240,10 @@ const ConceptTableCore: React.FC<ConceptTableCoreProps> = ({
             : undefined,
           filters: showFilters ? filterOptions.standard : undefined,
           onFilter: showFilters
-            ? (value: any, record: ConceptRow) =>
+            ? (value: React.Key | boolean, record: ConceptRow) =>
                 record.standard_concept.includes(value as string)
             : undefined,
-          render: (_: any, row: ConceptRow) =>
+          render: (_: string[], row: ConceptRow) =>
             renderCellValue(row, "standard_concept"),
         },
         {
@@ -254,10 +254,10 @@ const ConceptTableCore: React.FC<ConceptTableCoreProps> = ({
           filteredValue: showFilters ? filteredInfo.vocabulary_id : undefined,
           filters: showFilters ? filterOptions.vocabulary : undefined,
           onFilter: showFilters
-            ? (value: any, record: ConceptRow) =>
+            ? (value: React.Key | boolean, record: ConceptRow) =>
                 record.vocabulary_id.includes(value as string)
             : undefined,
-          render: (_: any, row: ConceptRow) =>
+          render: (_: string[], row: ConceptRow) =>
             renderCellValue(row, "vocabulary_id"),
         },
         {

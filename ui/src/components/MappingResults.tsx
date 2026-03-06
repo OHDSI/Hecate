@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Content } from "antd/es/layout/layout";
-import { Button, Table, Tag, Card, TableProps, notification } from "antd";
+import { Button, Table, Tag, Card, TableProps } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import HecateHeader from "./Header.tsx";
 
@@ -133,8 +133,6 @@ const useMappingFilters = () => {
 function MappingResults() {
   const [data, setData] = useState<MappingResult[]>([]);
   const [loading, setLoading] = useState(true);
-  const [drugName, setDrugName] = useState("");
-  const [drugCode, setDrugCode] = useState("");
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   const {
@@ -183,43 +181,6 @@ function MappingResults() {
     [createCountForFilter],
   );
 
-  const openSuccessNotification = useCallback(() => {
-    notification.success({
-      title: "Input successfully submitted",
-      message: "Come back in 20 seconds to see the result",
-      placement: "topRight",
-    });
-  }, []);
-
-  const submitMapping = useCallback(
-    (name: string, code: string) => {
-      if (!name.trim() && !code.trim()) return;
-
-      fetch("http://localhost:8080/api/drug-mapping/map", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          input: name,
-          code: code,
-        }),
-      }).catch((error) => {
-        console.error("Error mapping drug:", error);
-      });
-
-      openSuccessNotification();
-      setDrugName("");
-      setDrugCode("");
-    },
-    [openSuccessNotification],
-  );
-
-  // @ts-ignore
-  const handleInputSubmit = useCallback(() => {
-    submitMapping(drugName, drugCode);
-  }, [drugName, drugCode, submitMapping]);
-
   useEffect(() => {
     // fetch("http://localhost:8080/api/drug-mapping")
     fetch("/sample-mapping-results.json")
@@ -237,7 +198,7 @@ function MappingResults() {
         console.error("Error loading mapping results:", error);
         setLoading(false);
       });
-  }, []);
+  }, [getFilterSelector, setFilterOptions]);
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -357,10 +318,11 @@ function MappingResults() {
                   dataIndex: ["maps_to", "concept_name"],
                   key: "ingredient_maps_to",
                   width: "25%",
-                  render: (value, record: any) =>
-                    record.maps_to ? (
+                  render: (value, record) => {
+                    const rec = record as unknown as { maps_to?: { concept_id: number } };
+                    return rec.maps_to ? (
                       <a
-                        href={`/concepts/${record.maps_to.concept_id}`}
+                        href={`/concepts/${rec.maps_to.concept_id}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: "#01452c" }}
@@ -369,7 +331,8 @@ function MappingResults() {
                       </a>
                     ) : (
                       "N/A"
-                    ),
+                    );
+                  },
                 },
                 {
                   title: "mapping type",
@@ -407,7 +370,7 @@ function MappingResults() {
                 {
                   ...record.decomposition.brand,
                   key: "brand",
-                } as any,
+                } as Record<string, unknown>,
               ]}
               columns={[
                 {
@@ -421,10 +384,11 @@ function MappingResults() {
                   dataIndex: ["maps_to", "concept_name"],
                   key: "brand_maps_to",
                   width: "25%",
-                  render: (value, record: any) =>
-                    record.maps_to ? (
+                  render: (value, record) => {
+                    const rec = record as unknown as { maps_to?: { concept_id: number } };
+                    return rec.maps_to ? (
                       <a
-                        href={`/concepts/${record.maps_to.concept_id}`}
+                        href={`/concepts/${rec.maps_to.concept_id}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: "#01452c" }}
@@ -433,7 +397,8 @@ function MappingResults() {
                       </a>
                     ) : (
                       "N/A"
-                    ),
+                    );
+                  },
                 },
                 {
                   title: "mapping type",
@@ -470,7 +435,7 @@ function MappingResults() {
                 {
                   ...record.decomposition.supplier,
                   key: "supplier",
-                } as any,
+                } as Record<string, unknown>,
               ]}
               columns={[
                 {
@@ -484,10 +449,11 @@ function MappingResults() {
                   dataIndex: ["maps_to", "concept_name"],
                   key: "supplier_maps_to",
                   width: "25%",
-                  render: (value, record: any) =>
-                    record.maps_to ? (
+                  render: (value, record) => {
+                    const rec = record as unknown as { maps_to?: { concept_id: number } };
+                    return rec.maps_to ? (
                       <a
-                        href={`/concepts/${record.maps_to.concept_id}`}
+                        href={`/concepts/${rec.maps_to.concept_id}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: "#01452c" }}
@@ -496,7 +462,8 @@ function MappingResults() {
                       </a>
                     ) : (
                       "N/A"
-                    ),
+                    );
+                  },
                 },
                 {
                   title: "mapping type",
