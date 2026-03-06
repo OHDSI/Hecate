@@ -319,7 +319,9 @@ function MappingResults() {
                   key: "ingredient_maps_to",
                   width: "25%",
                   render: (value, record) => {
-                    const rec = record as unknown as { maps_to?: { concept_id: number } };
+                    const rec = record as unknown as {
+                      maps_to?: { concept_id: number };
+                    };
                     return rec.maps_to ? (
                       <a
                         href={`/concepts/${rec.maps_to.concept_id}`}
@@ -385,7 +387,9 @@ function MappingResults() {
                   key: "brand_maps_to",
                   width: "25%",
                   render: (value, record) => {
-                    const rec = record as unknown as { maps_to?: { concept_id: number } };
+                    const rec = record as unknown as {
+                      maps_to?: { concept_id: number };
+                    };
                     return rec.maps_to ? (
                       <a
                         href={`/concepts/${rec.maps_to.concept_id}`}
@@ -450,7 +454,9 @@ function MappingResults() {
                   key: "supplier_maps_to",
                   width: "25%",
                   render: (value, record) => {
-                    const rec = record as unknown as { maps_to?: { concept_id: number } };
+                    const rec = record as unknown as {
+                      maps_to?: { concept_id: number };
+                    };
                     return rec.maps_to ? (
                       <a
                         href={`/concepts/${rec.maps_to.concept_id}`}
