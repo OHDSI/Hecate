@@ -19,6 +19,7 @@ Hecate consists of three main components:
 ## Used by
 
 - [Ariadne](https://ohdsi.github.io/Ariadne/) — uses the Hecate API for semantic search
+- [EMA Authorized Drug Mappings](https://github.com/mi-erasmusmc/ema-authorised-to-rxnorm-mappings) - uses the Hecate API for semantic search
 
 ## Running locally
 
