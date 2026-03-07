@@ -86,7 +86,7 @@ function HecateHeader() {
             </Link>
           </div>
         </Dropdown>
-        <div
+        {/*<div
           style={{
             display: "flex",
             alignItems: "center",
@@ -101,8 +101,7 @@ function HecateHeader() {
           Hecate is currently being updated and may not work as smoothly as you
           have come to expect.
           <br />
-          Everything should be back to normal before Monday 9 March 00:00 CET.
-        </div>
+        </div>*/}
         <img
           onClick={() => setModalOpen(true)}
           src={hecateLogo}
