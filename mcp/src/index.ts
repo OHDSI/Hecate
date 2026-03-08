@@ -104,6 +104,46 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: "search_concepts_lexical",
+        description:
+          "Search for OMOP Standardized Vocabulary concepts using lexical (keyword) search powered by Apache Solr. Unlike semantic search, this performs exact and fuzzy text matching against concept names and codes. Best for searching by exact concept codes (like ICD-10 codes), known concept names, or when semantic similarity is not desired. Supports medical synonym expansion.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string",
+              description:
+                "Search query for medical concepts. Can search by concept name, ID, or code. Examples: 'diabetes', 'hypertension', '4321435', 'E11.9'.",
+              minLength: 1,
+              maxLength: 500,
+            },
+            vocabulary_id: {
+              type: "string",
+              description: "Filter by vocabulary source. Common vocabularies: 'SNOMED', 'ICD10CM', 'RxNorm', 'LOINC', 'CPT4', 'HCPCS', 'MedDRA'.",
+            },
+            standard_concept: {
+              type: "string",
+              description: "Filter by standardization status: 'S' = Standard concepts, 'C' = Classification concepts, empty/null = Non-standard source concepts.",
+            },
+            domain_id: {
+              type: "string",
+              description: "Filter by clinical domain: 'Condition', 'Drug', 'Procedure', 'Measurement', 'Observation', 'Device', 'Visit'.",
+            },
+            concept_class_id: {
+              type: "string",
+              description: "Filter by concept classification within vocabulary. Examples: 'Clinical Finding', 'Ingredient', 'Procedure', 'Lab Test'.",
+            },
+            limit: {
+              type: "number",
+              description: "Maximum number of results to return (default: 25, max: 999)",
+              minimum: 1,
+              maximum: 999,
+            },
+          },
+          required: ["query"],
+        },
+      },
+      {
         name: "get_concept_by_id",
         description:
           "Get detailed information about a specific OMOP concept by its unique concept ID. Returns concept metadata including name, domain, vocabulary, concept class, and validity dates.",
@@ -202,6 +242,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             {
               type: "text",
               text: JSON.stringify(results, null, 2),
+            },
+          ],
+        };
+      }
+
+      case "search_concepts_lexical": {
+        const { query, vocabulary_id, standard_concept, domain_id, concept_class_id, limit = 25 } = SearchInputSchema.parse(args);
+        const lexicalResults = await apiClient.searchLexical(query, {
+          vocabulary_id,
+          standard_concept,
+          domain_id,
+          concept_class_id,
+          limit,
+        });
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(lexicalResults, null, 2),
             },
           ],
         };

@@ -29,3 +29,4 @@ tokio-pg-mapper = "0.2.0"
 tokio-pg-mapper-derive = "0.2.0"
 tokio-postgres = { version = "0.7.16", features = ["with-chrono-0_4"] }
 uuid = { version = "1.22.0", features = ["v4", "serde"] }
+form_urlencoded = "1.2.2"

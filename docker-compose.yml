@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  solr:
+    image: solr:9.8
+    container_name: hecate-solr
+    ports:
+      - "8983:8983"
+    volumes:
+      - solr_data:/var/solr
+      - ./solr/configsets/omop_concepts:/opt/solr/server/solr/configsets/omop_concepts
+    command: >
+      bash -c "
+        precreate-core omop_concepts /opt/solr/server/solr/configsets/omop_concepts &&
+        solr-foreground
+      "
+    environment:
+      - SOLR_HEAP=2g
+    restart: unless-stopped
+
+volumes:
+  solr_data:

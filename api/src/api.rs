@@ -236,6 +236,100 @@ async fn search_api(
     Ok(Json(search(parameters, state, CONCEPT_COLLECTION).await?))
 }
 
+#[get("/api/search_lexical")]
+pub async fn search_lexical(
+    parameters: Query<Parameters>,
+    state: Data<StateWrapper>,
+) -> Result<Json<Vec<SearchResponse>>, Error> {
+    let solr_client = state.solr_client.as_ref().ok_or_else(|| {
+        actix_web::error::ErrorServiceUnavailable(
+            "Lexical search is not available. Solr is not configured (set SOLR_URL to enable).",
+        )
+    })?;
+
+    let input = parameters.q.trim();
+    info!("Received lexical search request for {:?}", input);
+
+    let limit = parameters.limit.unwrap_or(25);
+
+    let filters = crate::solr::SolrFilters {
+        vocabulary_id: parameters.vocabulary_id.clone(),
+        exclude_vocabulary_id: parameters.exclude_vocabulary_id.clone(),
+        domain_id: parameters.domain_id.clone(),
+        concept_class_id: parameters.concept_class_id.clone(),
+        standard_concept: parameters.standard_concept.clone(),
+    };
+
+    let solr_docs = solr_client
+        .search(input, &filters, limit)
+        .await
+        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+
+    let total = solr_docs.len().max(1) as f64;
+    let mut grouped: HashMap<String, (f64, Vec<Concept>)> = HashMap::new();
+
+    for (idx, doc) in solr_docs.iter().enumerate() {
+        let record_count = state
+            .concept_record_counts
+            .get(&doc.concept_id)
+            .copied()
+            .unwrap_or(doc.record_count);
+
+        let concept = Concept {
+            concept_id: doc.concept_id,
+            concept_name: doc.concept_name.clone(),
+            domain_id: doc.domain_id.clone(),
+            vocabulary_id: doc.vocabulary_id.clone(),
+            concept_class_id: doc.concept_class_id.clone(),
+            standard_concept: if doc.standard_concept.as_deref() == Some("") {
+                None
+            } else {
+                doc.standard_concept.clone()
+            },
+            concept_code: doc.concept_code.clone(),
+            invalid_reason: if doc.invalid_reason.as_deref() == Some("") {
+                None
+            } else {
+                doc.invalid_reason.clone()
+            },
+            valid_start_date: None,
+            valid_end_date: None,
+            record_count,
+        };
+
+        // Position-based score: first result = 1.0, last = near 0.0
+        let score = 1.0 - (idx as f64 / total);
+        let name_lower = concept.concept_name.to_lowercase();
+
+        if let Some((existing_score, concepts)) = grouped.get_mut(&name_lower) {
+            if score > *existing_score {
+                *existing_score = score;
+            }
+            concepts.push(concept);
+        } else {
+            grouped.insert(name_lower, (score, vec![concept]));
+        }
+    }
+
+    let mut responses: Vec<SearchResponse> = grouped
+        .into_iter()
+        .map(|(name_lower, (score, concepts))| SearchResponse {
+            concept_name: concepts[0].concept_name.clone(),
+            concept_name_lower: name_lower,
+            score: Some(score),
+            concepts,
+        })
+        .collect();
+
+    responses.sort_by(|a, b| {
+        b.score
+            .partial_cmp(&a.score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    Ok(Json(responses))
+}
+
 async fn search(
     parameters: Query<Parameters>,
     state: Data<StateWrapper>,

@@ -7,11 +7,12 @@ mod embeddings;
 mod errors;
 mod umls;
 mod utils;
+mod solr;
 mod validation;
 
 use crate::api::{
     analyze_concept_set, get_concept_by_id, get_concept_definition, get_concept_expand,
-    get_concept_phoebe, get_concept_relationships, search_api, search_standard,
+    get_concept_phoebe, get_concept_relationships, search_api, search_lexical, search_standard,
 };
 use crate::config::Configs;
 use crate::domain::{Concept, ExpandCacheKey, ExpandResponse};
@@ -36,6 +37,7 @@ struct StateWrapper {
     concept_record_counts: HashMap<i32, i64>,
     pg_pool: Pool,
     qdrant_client: Qdrant,
+    solr_client: Option<crate::solr::SolrClient>,
     expand_cache: Cache<ExpandCacheKey, ExpandResponse>,
     children_cache: Cache<i32, Vec<Concept>>,
     parents_cache: Cache<i32, Vec<Concept>>,
@@ -71,6 +73,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .service(search_standard)
             .service(search_api)
+            .service(search_lexical)
             .service(get_concept_by_id)
             .service(get_concept_relationships)
             .service(get_concept_definition)
@@ -107,6 +110,20 @@ async fn create_state(config: &Configs) -> anyhow::Result<Data<StateWrapper>> {
         .await
         .context("Qdrant health check failed")?;
 
+    let solr_client = if let Some(solr_url) = &config.solr_url {
+        info!("Initializing Solr client (url: {})", solr_url);
+        let client = crate::solr::SolrClient::new(solr_url)
+            .context("Failed to build Solr client")?;
+        client
+            .health_check()
+            .await
+            .context("Solr health check failed - is Solr running?")?;
+        Some(client)
+    } else {
+        info!("Solr not configured (SOLR_URL not set), lexical search disabled");
+        None
+    };
+
     let concept_index = load_concept_index(&config.vectordb_data_path)?;
     let concept_record_counts = load_concept_record_counts()?;
 
@@ -135,6 +152,7 @@ async fn create_state(config: &Configs) -> anyhow::Result<Data<StateWrapper>> {
         concept_record_counts,
         pg_pool,
         qdrant_client,
+        solr_client,
         expand_cache,
         children_cache,
         parents_cache,

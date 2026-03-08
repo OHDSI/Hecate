@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config>
+  <luceneMatchVersion>9.8</luceneMatchVersion>
+
+  <dataDir>${solr.data.dir:}</dataDir>
+
+  <directoryFactory name="DirectoryFactory" class="${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"/>
+
+  <schemaFactory class="ClassicIndexSchemaFactory"/>
+
+  <updateHandler class="solr.DirectUpdateHandler2">
+    <autoCommit>
+      <maxTime>60000</maxTime>
+      <openSearcher>false</openSearcher>
+    </autoCommit>
+    <autoSoftCommit>
+      <maxTime>15000</maxTime>
+    </autoSoftCommit>
+  </updateHandler>
+
+  <query>
+    <maxBooleanClauses>${solr.max.booleanClauses:1024}</maxBooleanClauses>
+    <filterCache class="solr.CaffeineCache" size="512" initialSize="128" autowarmCount="64"/>
+    <queryResultCache class="solr.CaffeineCache" size="512" initialSize="128" autowarmCount="64"/>
+    <documentCache class="solr.CaffeineCache" size="512" initialSize="128" autowarmCount="0"/>
+  </query>
+
+  <requestHandler name="/select" class="solr.SearchHandler">
+    <lst name="defaults">
+      <str name="echoParams">explicit</str>
+      <str name="wt">json</str>
+      <str name="defType">edismax</str>
+      <str name="qf">concept_name_exact^10 concept_name^5 concept_name_edge^1 concept_code^8</str>
+      <str name="pf">concept_name^10</str>
+      <str name="mm">75%</str>
+      <int name="rows">25</int>
+    </lst>
+  </requestHandler>
+
+  <requestHandler name="/update" class="solr.UpdateRequestHandler"/>
+
+  <requestHandler name="/admin/ping" class="solr.PingRequestHandler">
+    <lst name="invariants">
+      <str name="q">*:*</str>
+    </lst>
+    <lst name="defaults">
+      <str name="echoParams">all</str>
+    </lst>
+  </requestHandler>
+
+  <requestDispatcher>
+    <requestParsers enableRemoteStreaming="false" multipartUploadLimitInKB="-1"/>
+    <httpCaching never304="true"/>
+  </requestDispatcher>
+
+</config>

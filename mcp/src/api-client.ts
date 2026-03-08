@@ -49,6 +49,31 @@ export class HecateApiClient {
     return response.data;
   }
 
+  async searchLexical(query: string, options?: SearchOptions): Promise<SearchResponse[]> {
+    const params = new URLSearchParams({ q: query });
+
+    if (options?.vocabulary_id) {
+      params.append('vocabulary_id', options.vocabulary_id);
+    }
+    if (options?.standard_concept !== undefined) {
+      params.append('standard_concept', options.standard_concept);
+    }
+    if (options?.domain_id) {
+      params.append('domain_id', options.domain_id);
+    }
+    if (options?.concept_class_id) {
+      params.append('concept_class_id', options.concept_class_id);
+    }
+    if (options?.limit) {
+      params.append('limit', options.limit.toString());
+    }
+
+    const response: AxiosResponse<SearchResponse[]> = await this.client.get(
+      `/search_lexical?${params.toString()}`,
+    );
+    return response.data;
+  }
+
   async getConceptById(id: number): Promise<Concept> {
     const response: AxiosResponse<Concept[]> = await this.client.get(
       `/concepts/${id}`,

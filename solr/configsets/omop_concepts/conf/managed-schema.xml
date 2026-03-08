@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema name="omop_concepts" version="1.6">
+
+  <!-- Field types -->
+  <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true"/>
+  <fieldType name="pint" class="solr.IntPointField" docValues="true"/>
+  <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
+  <fieldType name="pdate" class="solr.DatePointField" docValues="true"/>
+
+  <fieldType name="lowercase" class="solr.TextField" positionIncrementGap="100">
+    <analyzer>
+      <tokenizer class="solr.KeywordTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
+
+  <!-- Medical text analysis: whitespace + word splitting + light stemming -->
+  <fieldType name="text_medical" class="solr.TextField" positionIncrementGap="100">
+    <analyzer type="index">
+      <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+      <filter class="solr.WordDelimiterGraphFilterFactory"
+              generateWordParts="1" generateNumberParts="1"
+              catenateWords="1" catenateNumbers="0"
+              splitOnCaseChange="1" splitOnNumerics="0"
+              preserveOriginal="1"/>
+      <filter class="solr.FlattenGraphFilterFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.ASCIIFoldingFilterFactory"/>
+      <filter class="solr.EnglishMinimalStemFilterFactory"/>
+    </analyzer>
+    <analyzer type="query">
+      <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+      <filter class="solr.WordDelimiterGraphFilterFactory"
+              generateWordParts="1" generateNumberParts="1"
+              catenateWords="0" catenateNumbers="0"
+              splitOnCaseChange="1" splitOnNumerics="0"
+              preserveOriginal="1"/>
+      <filter class="solr.SynonymGraphFilterFactory"
+              synonyms="medical_synonyms.txt" ignoreCase="true" expand="true"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.ASCIIFoldingFilterFactory"/>
+      <filter class="solr.EnglishMinimalStemFilterFactory"/>
+    </analyzer>
+  </fieldType>
+
+  <!-- Edge ngram for prefix/autocomplete matching -->
+  <fieldType name="text_edge_ngram" class="solr.TextField" positionIncrementGap="100">
+    <analyzer type="index">
+      <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.EdgeNGramFilterFactory" minGramSize="2" maxGramSize="25"/>
+    </analyzer>
+    <analyzer type="query">
+      <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
+
+  <!-- Fields -->
+  <uniqueKey>concept_id</uniqueKey>
+
+  <field name="concept_id" type="pint" indexed="true" stored="true" required="true"/>
+  <field name="concept_name" type="text_medical" indexed="true" stored="true"/>
+  <field name="concept_name_edge" type="text_edge_ngram" indexed="true" stored="false"/>
+  <field name="concept_name_exact" type="string" indexed="true" stored="false"/>
+  <field name="concept_name_lower" type="lowercase" indexed="true" stored="true"/>
+  <field name="domain_id" type="string" indexed="true" stored="true"/>
+  <field name="vocabulary_id" type="string" indexed="true" stored="true"/>
+  <field name="concept_class_id" type="string" indexed="true" stored="true"/>
+  <field name="standard_concept" type="string" indexed="true" stored="true"/>
+  <field name="concept_code" type="string" indexed="true" stored="true"/>
+  <field name="invalid_reason" type="string" indexed="true" stored="true"/>
+  <field name="valid_start_date" type="pdate" indexed="true" stored="true"/>
+  <field name="valid_end_date" type="pdate" indexed="true" stored="true"/>
+  <field name="record_count" type="plong" indexed="true" stored="true" default="0"/>
+
+  <!-- Copy fields for multi-analysis -->
+  <copyField source="concept_name" dest="concept_name_edge"/>
+  <copyField source="concept_name" dest="concept_name_exact"/>
+  <copyField source="concept_name" dest="concept_name_lower"/>
+
+</schema>

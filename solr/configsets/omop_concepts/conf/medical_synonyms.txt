@@ -1,0 +1,27 @@
+# Medical abbreviation synonyms for Solr query expansion
+# Format: abbreviation, full term (bidirectional expansion)
+MI, myocardial infarction
+DM, diabetes mellitus
+HTN, hypertension
+COPD, chronic obstructive pulmonary disease
+CHF, congestive heart failure
+CKD, chronic kidney disease
+DVT, deep vein thrombosis
+PE, pulmonary embolism
+UTI, urinary tract infection
+CAD, coronary artery disease
+AFib, atrial fibrillation
+T2DM, type 2 diabetes mellitus
+T1DM, type 1 diabetes mellitus
+NSAID, nonsteroidal anti-inflammatory drug
+ACE, angiotensin converting enzyme
+GERD, gastroesophageal reflux disease
+AKI, acute kidney injury
+ARDS, acute respiratory distress syndrome
+TIA, transient ischemic attack
+CVA, cerebrovascular accident
+RA, rheumatoid arthritis
+SLE, systemic lupus erythematosus
+MS, multiple sclerosis
+IBD, inflammatory bowel disease
+ESRD, end stage renal disease

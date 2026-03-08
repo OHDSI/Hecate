@@ -20,6 +20,7 @@ pub struct Configs {
     pub pg: deadpool_postgres::Config,
     pub cache_max_capacity: u64,
     pub cache_ttl_days: u64,
+    pub solr_url: Option<String>,
 }
 
 impl Default for Configs {
@@ -32,6 +33,7 @@ impl Default for Configs {
             pg: deadpool_postgres::Config::default(),
             cache_max_capacity: 64,
             cache_ttl_days: 21,
+            solr_url: None,
         }
     }
 }
