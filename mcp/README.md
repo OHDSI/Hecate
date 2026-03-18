@@ -6,23 +6,20 @@ A Model Context Protocol (MCP) server for the Hecate API, providing access to me
 
 This MCP server provides the following tools:
 
-### `search_concepts`
+### `hecate_search_concepts`
 Search for medical concepts using text queries with similarity scoring.
 
 **Parameters:**
 - `query` (string): Search query for medical concepts (1-500 characters)
+- `vocabulary_id` (string, optional): Filter by vocabulary source (e.g., 'SNOMED', 'ICD10CM', 'RxNorm')
+- `standard_concept` (string, optional): Filter by standardization status ('S', 'C', or empty)
+- `domain_id` (string, optional): Filter by clinical domain (e.g., 'Condition', 'Drug')
+- `concept_class_id` (string, optional): Filter by concept class
+- `limit` (number, optional): Maximum results to return (1-50, default: 20)
 
 **Returns:** Array of search results with concept details and similarity scores
 
-### `autocomplete_concepts`
-Get autocomplete suggestions for medical concept names.
-
-**Parameters:**
-- `query` (string): Partial concept name for autocomplete (1-100 characters)
-
-**Returns:** Array of suggested concept names
-
-### `get_concept_by_id`
+### `hecate_get_concept_by_id`
 Get detailed information about a specific medical concept by its ID.
 
 **Parameters:**
@@ -30,7 +27,7 @@ Get detailed information about a specific medical concept by its ID.
 
 **Returns:** Detailed concept information including all metadata
 
-### `get_concept_relationships`
+### `hecate_get_concept_relationships`
 Get related concepts for a specific concept ID.
 
 **Parameters:**
@@ -38,23 +35,15 @@ Get related concepts for a specific concept ID.
 
 **Returns:** Array of related concepts with relationship types
 
-### `get_concept_phoebe`
-Get phoebe-related concepts for a specific concept ID.
+### `hecate_get_concept_phoebe`
+Get PHOEBE-defined relationships for a specific concept ID.
 
 **Parameters:**
 - `id` (number): Concept ID (positive integer)
 
-**Returns:** Array of phoebe-related concepts
+**Returns:** Array of PHOEBE-related concepts
 
-### `get_concept_definition`
-Get the definition of a specific medical concept.
-
-**Parameters:**
-- `id` (number): Concept ID (positive integer)
-
-**Returns:** Text definition of the concept
-
-### `expand_concept_hierarchy`
+### `hecate_expand_concept_hierarchy`
 Get the hierarchical structure of a concept including children and parents.
 
 **Parameters:**
