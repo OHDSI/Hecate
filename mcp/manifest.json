@@ -1,13 +1,13 @@
 {
-  "dxt_version": "0.1",
+  "manifest_version": "0.3",
   "name": "Hecate MCP Server",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for Hecate API - medical concept search and retrieval",
   "author": {
     "name": "Pantheon HDS",
     "url": "https://hecate.pantheon-hds.com"
   },
-  "homepage": " https://hecate.pantheon-hds.com",
+  "homepage": "https://hecate.pantheon-hds.com",
   "icon": "logo.png",
   "server": {
     "type": "node",

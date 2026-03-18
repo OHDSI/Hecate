@@ -1,131 +1,54 @@
 # Hecate MCP Server
 
-A Model Context Protocol (MCP) server for the Hecate API, providing access to medical concept search and retrieval functionality.
+A Model Context Protocol (MCP) server for the [Hecate API](https://hecate.pantheon-hds.com), providing access to OMOP vocabulary concepts.
 
 ## Features
 
-This MCP server provides the following tools:
+- **Search concepts** — semantic search across OMOP vocabularies (SNOMED, ICD-10, RxNorm, LOINC, and more)
+- **Lookup by ID** — retrieve full concept metadata by OMOP concept ID
+- **Relationships** — explore cross-vocabulary mappings and standard concept relationships
+- **PHOEBE relationships** — curated clinical relationships optimised for phenotype and cohort definitions
+- **Hierarchy expansion** — navigate concept hierarchies up and down
 
-### `hecate_search_concepts`
-Search for medical concepts using text queries with similarity scoring.
+## Setup
 
-**Parameters:**
-- `query` (string): Search query for medical concepts (1-500 characters)
-- `vocabulary_id` (string, optional): Filter by vocabulary source (e.g., 'SNOMED', 'ICD10CM', 'RxNorm')
-- `standard_concept` (string, optional): Filter by standardization status ('S', 'C', or empty)
-- `domain_id` (string, optional): Filter by clinical domain (e.g., 'Condition', 'Drug')
-- `concept_class_id` (string, optional): Filter by concept class
-- `limit` (number, optional): Maximum results to return (1-50, default: 20)
+### Hosted
 
-**Returns:** Array of search results with concept details and similarity scores
+Connect directly using the hosted server at `https://hecate.pantheon-hds.com/mcp/sse` (Streamable HTTP — the `/sse` path is retained for backwards compatibility) no install of the MCP server required. Refer to your client's MCP documentation for how to add a remote server URL:
 
-### `hecate_get_concept_by_id`
-Get detailed information about a specific medical concept by its ID.
+- [Claude Desktop](https://modelcontextprotocol.io/quickstart/user)
+- [Cursor](https://docs.cursor.com/context/model-context-protocol)
+- [Windsurf](https://docs.windsurf.com/windsurf/cascade/mcp)
+- [opencode](https://opencode.ai/docs/mcp-servers/)
+- [ChatGPT](https://help.openai.com/en/articles/11487775-apps-in-chatgpt) (Plus, Team, or Pro)
 
-**Parameters:**
-- `id` (number): Concept ID (positive integer)
+### Claude Desktop (drag and drop)
 
-**Returns:** Detailed concept information including all metadata
+Download [`hecate-mcp-server.mcpb`](./hecate-mcp-server.mcpb) and drag it into the Claude Desktop settings to install instantly.
 
-### `hecate_get_concept_relationships`
-Get related concepts for a specific concept ID.
+### Local
 
-**Parameters:**
-- `id` (number): Concept ID (positive integer)
-
-**Returns:** Array of related concepts with relationship types
-
-### `hecate_get_concept_phoebe`
-Get PHOEBE-defined relationships for a specific concept ID.
-
-**Parameters:**
-- `id` (number): Concept ID (positive integer)
-
-**Returns:** Array of PHOEBE-related concepts
-
-### `hecate_expand_concept_hierarchy`
-Get the hierarchical structure of a concept including children and parents.
-
-**Parameters:**
-- `id` (number): Concept ID (positive integer)
-- `childLevels` (number, optional): Number of child levels to expand (0-10, default: 5)
-- `parentLevels` (number, optional): Number of parent levels to expand (0-10, default: 0)
-
-**Returns:** Hierarchical structure with nested concepts
-
-## Installation
-
-1. Clone the repository
-2. Install dependencies:
+1. Clone the repository and install dependencies:
    ```bash
-   npm install
+   npm install && npm run build
    ```
-
-3. Build the server:
-   ```bash
-   npm run build
-   ```
-
-## Usage
-
-### Development
-```bash
-npm run dev
-```
-
-### Production
-```bash
-npm start
-```
-
-### With Claude Desktop
-
-Add the server to your Claude Desktop configuration:
-
-```json
-{
-  "mcpServers": {
-    "hecate": {
-      "command": "node",
-      "args": ["/path/to/hecate-mcp-server/dist/index.js"],
-      "env": {}
-    }
-  }
-}
-```
-
-## API Configuration
-
-By default, the server connects to:
-`https://hecate.pantheon-hds.com/api`
-
-To use a different API endpoint, modify the `DEFAULT_CONFIG` in `src/index.ts`.
+2. Register `dist/index.js` as a local stdio MCP server in your client using the same docs above.
 
 ## Development
 
-The server is built with:
-- TypeScript
-- Model Context Protocol SDK
-- Axios for HTTP requests
-- Zod for input validation
-
-### Project Structure
+Built with TypeScript, MCP SDK, Axios, and Zod.
 
 ```
 src/
-├── index.ts          # Main MCP server implementation
-├── api-client.ts     # Hecate API client
-└── types.ts          # TypeScript type definitions
+├── index.ts       # MCP server and tool definitions
+├── api-client.ts  # Hecate API client
+└── types.ts       # TypeScript types
 ```
-
-### Building
 
 ```bash
-npm run build
+npm run dev    # run with tsx (no build needed)
+npm run build  # compile to dist/
+npm start      # run compiled output
 ```
 
-### Testing
-
-```bash
-npm test
-```
+By default connects to `https://hecate.pantheon-hds.com/api`. To use a different endpoint, update `DEFAULT_CONFIG` in `src/index.ts`.
