@@ -22,27 +22,23 @@
   },
   "tools": [
     {
-      "name": "search_concepts",
+      "name": "hecate_search_concepts",
       "description": "Search for OMOP Standardized Vocabulary concepts using text query. Returns medical concepts with similarity scores from over 100 vocabularies including SNOMED CT, ICD-10-CM, RxNorm, LOINC, and more."
     },
     {
-      "name": "get_concept_by_id",
+      "name": "hecate_get_concept_by_id",
       "description": "Get detailed information about a specific OMOP concept by its unique concept ID. Returns concept metadata including name, domain, vocabulary, concept class, and validity dates."
     },
     {
-      "name": "get_concept_relationships",
+      "name": "hecate_get_concept_relationships",
       "description": "Get related concepts for a specific OMOP concept. Returns relationships like 'Maps to', 'Subsumes', 'Is a', enabling navigation through concept hierarchies and cross-vocabulary mappings."
     },
     {
-      "name": "get_concept_phoebe",
+      "name": "hecate_get_concept_phoebe",
       "description": "Get PHOEBE-defined relationships for a specific OMOP concept. PHOEBE provides curated clinical relationships optimized for phenotype definitions and cohort building."
     },
     {
-      "name": "get_concept_definition",
-      "description": "Get the clinical definition from UMLS for a specific OMOP concept if available. Returns detailed descriptions to help understand the medical meaning and clinical context."
-    },
-    {
-      "name": "expand_concept_hierarchy",
+      "name": "hecate_expand_concept_hierarchy",
       "description": "Get the hierarchical structure of an OMOP concept including children and parents. Useful for exploring clinical taxonomies and building comprehensive phenotype definitions."
     }
   ],
