@@ -53,6 +53,9 @@ export class HecateApiClient {
     const response: AxiosResponse<Concept[]> = await this.client.get(
       `/concepts/${id}`,
     );
+    if (!response.data.length) {
+      throw new Error(`Concept with ID ${id} not found. Use hecate_search_concepts to find the correct concept ID.`);
+    }
     return response.data[0];
   }
 
@@ -80,10 +83,10 @@ export class HecateApiClient {
         `/concepts/${id}/expand?childlevels=${childLevels}&parentlevels=${parentLevels}`,
       );
 
-    if (response.data.concepts[0]?.children) {
-      return response.data.concepts[0].children;
-    } else {
-      return [];
+    const root = response.data.concepts[0];
+    if (!root) {
+      throw new Error(`Concept with ID ${id} not found. Use hecate_search_concepts to find the correct concept ID.`);
     }
+    return root.children ?? [];
   }
 }

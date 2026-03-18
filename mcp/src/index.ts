@@ -22,7 +22,7 @@ const apiClient = new HecateApiClient(DEFAULT_CONFIG);
 // Create MCP server
 const server = new McpServer({
   name: "hecate-mcp-server",
-  version: "1.0.0",
+  version: "0.2.0",
 });
 
 // Shared annotations for all read-only tools
@@ -38,7 +38,18 @@ function apiErrorResult(error: unknown) {
   let message: string;
   if (error && typeof error === "object" && "response" in error) {
     const axiosError = error as any;
-    message = `API Error: ${axiosError.response?.status} - ${axiosError.response?.statusText || axiosError.message}`;
+    const status = axiosError.response?.status;
+    if (status === 404) {
+      message = `API Error: 404 Not Found. The requested concept does not exist. Use hecate_search_concepts to find the correct concept ID.`;
+    } else if (status === 400) {
+      message = `API Error: 400 Bad Request. Check that all parameters are valid. ${axiosError.response?.data?.message || ""}`;
+    } else if (status === 429) {
+      message = `API Error: 429 Too Many Requests. Rate limit exceeded — wait before retrying.`;
+    } else if (status >= 500) {
+      message = `API Error: ${status} Server Error. The Hecate API is temporarily unavailable. Try again shortly.`;
+    } else {
+      message = `API Error: ${status} - ${axiosError.response?.statusText || axiosError.message}`;
+    }
   } else {
     message = `Error: ${error instanceof Error ? error.message : String(error)}`;
   }
