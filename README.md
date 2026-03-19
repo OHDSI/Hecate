@@ -42,4 +42,6 @@ cargo run
 
 ## MCP Server
 
-An MCP (Model Context Protocol) server is available — connect directly at `https://hecate.pantheon-hds.com/mcp/sse` or see [mcp/README.md](./mcp/README.md) for more details or how to run locally.
+> **The hosted MCP server has been upgraded to Streamable HTTP. SSE transport is no longer supported. If you are having trouble connecting, please refresh your MCP client installation or update your client to a version that supports Streamable HTTP. The endpoint itself remains unchanged**
+
+An MCP (Model Context Protocol) server is available — connect directly at `https://hecate.pantheon-hds.com/mcp/sse` see [mcp/README.md](./mcp/README.md) for more details or how to run locally.
