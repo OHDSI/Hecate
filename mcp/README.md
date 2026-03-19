@@ -14,6 +14,8 @@ A Model Context Protocol (MCP) server for the [Hecate API](https://hecate.panthe
 
 ### Hosted
 
+> **The hosted server now uses Streamable HTTP. SSE transport is no longer supported. If you are having trouble connecting, please refresh your MCP client installation or update your client to a version that supports Streamable HTTP.**
+
 Connect directly using the hosted server at `https://hecate.pantheon-hds.com/mcp/sse` (Streamable HTTP — the `/sse` path is retained for backwards compatibility) no install of the MCP server required. Refer to your client's MCP documentation for how to add a remote server URL:
 
 - [Claude Desktop](https://modelcontextprotocol.io/quickstart/user)
