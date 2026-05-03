@@ -8,7 +8,7 @@ actix-cors = "0.7.1"
 actix-web = "4.13.0"
 anyhow = "1.0"
 env_logger = "0.11.10"
-indicium = "0.6.8"
+indicium = "0.6.9"
 log = "0.4.29"
 serde = { version = "1.0.228", features = ["derive"] }
-tokio = { version = "1.51.0", features = ["rt", "rt-multi-thread", "macros"] }
+tokio = { version = "1.52.1", features = ["rt", "rt-multi-thread", "macros"] }

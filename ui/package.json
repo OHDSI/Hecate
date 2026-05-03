@@ -12,25 +12,25 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.3.9",
-    "@mui/styled-engine": "^7.3.9",
-    "antd": "^6.3.5",
-    "axios": "1.14.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-router-dom": "^7.14.0"
+    "@mui/icons-material": "^9.0.0",
+    "@mui/styled-engine": "^9.0.0",
+    "antd": "^6.3.7",
+    "axios": "1.16.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router-dom": "^7.14.2"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@eslint/js": "^10.0.1",
     "@vitejs/plugin-react-swc": "^4.3.0",
-    "eslint": "^10.1.0",
-    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint": "^10.3.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
-    "typescript-eslint": "^8.58.0",
-    "prettier": "^3.8.1",
-    "typescript": "^6.0.2",
-    "vite": "^8.0.3"
+    "typescript-eslint": "^8.59.1",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10"
   }
 }
