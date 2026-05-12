@@ -1,0 +1,6 @@
+# Place your PostgreSQL dump files here
+# 
+# This directory should contain your OHDSI vocabulary data dumps
+# Files in this directory will be automatically loaded during container initialization
+#
+# See data/README.md for detailed instructions

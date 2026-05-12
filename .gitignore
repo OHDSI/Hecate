@@ -66,3 +66,15 @@ temp/
 
 # Random stuff
 scripts
+
+# Docker build resources (user-provided data)
+postgres/data/*
+!postgres/data/.gitkeep
+!postgres/data/README.md
+qdrant/collections/*
+!qdrant/collections/.gitkeep
+!qdrant/collections/README.md
+
+# Docker compose volumes (legacy)
+postgres_data/
+qdrant_storage/

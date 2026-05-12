@@ -1,0 +1,6 @@
+# Place your Qdrant collection snapshots here
+#
+# This directory should contain your Qdrant collections with concept embeddings
+# Collections in this directory will be automatically loaded during container startup
+#
+# See collections/README.md for detailed instructions
