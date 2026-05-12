@@ -97,9 +97,19 @@ else
     # Optional tables
     load_csv "$DATA_DIR/DRUG_STRENGTH.csv" "drug_strength" "$VOCAB_SCHEMA"
     
-    # Hecate-specific tables
-    load_csv "$DATA_DIR/PHOEBE.csv" "phoebe" "$VOCAB_SCHEMA"
-    load_csv "$DATA_DIR/phoebe.csv" "phoebe" "$VOCAB_SCHEMA"  # try lowercase
+    # Hecate-specific tables (comma-delimited, not tab)
+    local phoebe_file=""
+    [ -f "$DATA_DIR/PHOEBE.csv" ] && phoebe_file="$DATA_DIR/PHOEBE.csv"
+    [ -f "$DATA_DIR/phoebe.csv" ] && phoebe_file="$DATA_DIR/phoebe.csv"
+    if [ -n "$phoebe_file" ]; then
+        echo "Loading $phoebe_file into ${VOCAB_SCHEMA}.phoebe..."
+        psql -v ON_ERROR_STOP=0 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+            COPY ${VOCAB_SCHEMA}.phoebe FROM '${phoebe_file}' WITH (FORMAT CSV, HEADER true, DELIMITER ',', ENCODING 'UTF8');
+EOSQL
+        echo "  Row count: $(psql -t --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c "SELECT COUNT(*) FROM ${VOCAB_SCHEMA}.phoebe;" | xargs)"
+    else
+        echo "  Skipping phoebe - file not found"
+    fi
     
     echo "========================================="
     echo "CSV Data Loading Complete"
