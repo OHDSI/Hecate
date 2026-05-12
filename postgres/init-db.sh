@@ -109,14 +109,14 @@ else
     echo ""
     echo "Table Summary:"
     psql --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-        SELECT 
+        SELECT
             schemaname,
-            tablename,
-            pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size,
-            (SELECT COUNT(*) FROM ${VOCAB_SCHEMA}.\${tablename}) AS row_count
-        FROM pg_tables
+            relname AS tablename,
+            pg_size_pretty(pg_total_relation_size(schemaname||'.'||relname)) AS size,
+            n_live_tup AS approx_row_count
+        FROM pg_stat_user_tables
         WHERE schemaname = '${VOCAB_SCHEMA}'
-        ORDER BY tablename;
+        ORDER BY relname;
 EOSQL
 fi
 

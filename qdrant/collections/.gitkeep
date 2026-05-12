@@ -3,4 +3,13 @@
 # This directory should contain your Qdrant collections with concept embeddings
 # Collections in this directory will be automatically loaded during container startup
 #
-# See collections/README.md for detailed instructions
+# To build the collections, see ../README.md for instructions on running build_collections.py
+#
+# After building, copy the Qdrant storage directory here:
+#   cp -r /path/to/qdrant/storage/* ./
+#
+# The directory structure should look like:
+#   collections/
+#     meddra/
+#     synonyms/
+#     .qdrant-initialized (or similar Qdrant metadata files)

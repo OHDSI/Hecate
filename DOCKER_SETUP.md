@@ -59,24 +59,41 @@ All three containers run on a custom Docker network (`hecate-network`) and commu
 
 ### Step 2: Prepare Qdrant Collections
 
-Copy your Qdrant collection data to the `qdrant/collections/` directory.
+You need to create the `meddra` and `synonyms` collections with concept embeddings.
 
-#### Option A: Copy Existing Qdrant Storage (Recommended)
+#### Option A: Copy Existing Qdrant Storage (Fastest)
 
 ```bash
-# If you have an existing Qdrant instance
+# If you have an existing Qdrant instance with the collections already built
 cp -r /path/to/your/qdrant/storage/* qdrant/collections/
 ```
 
-#### Option B: Start Empty and Populate Later
+#### Option B: Build Collections from Scratch
 
-Leave `qdrant/collections/` empty and populate collections after starting the containers using the Qdrant API.
+Build the collections from your PostgreSQL vocabulary data using the provided Python script:
 
-**Required collections:**
-- `meddra` - Main concept collection with 1024-dim embeddings
-- `synonyms` - Synonym collection with 1024-dim embeddings
+```bash
+cd qdrant
 
-See `qdrant/collections/README.md` for detailed information about collection structure.
+# Install Python dependencies
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Configure (copy and edit with your settings)
+cp config.template .env
+
+# Build collections (requires OpenAI API key - will incur costs ~$2-3)
+python build_collections.py
+
+# Copy the built collections to the docker directory
+# Find your Qdrant storage directory (default: ./storage relative to Qdrant)
+cp -r /path/to/qdrant/storage/* ./collections/
+
+cd ..
+```
+
+See [qdrant/README.md](qdrant/README.md) for detailed instructions and cost estimates.
 
 ### Step 3: Set Environment Variables
 

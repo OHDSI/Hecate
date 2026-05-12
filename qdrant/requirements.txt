@@ -1,0 +1,17 @@
+# Requirements for building Qdrant collections
+
+# Database connectors
+psycopg2-binary>=2.9.9
+
+# Vector database
+qdrant-client>=1.7.0
+
+# Local embeddings
+sentence-transformers>=2.3.0
+torch>=2.0.0
+
+# Progress bars
+tqdm>=4.66.0
+
+# Environment variable management (optional but recommended)
+python-dotenv>=1.0.0

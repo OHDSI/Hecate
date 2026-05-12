@@ -1,0 +1,15 @@
+# Configuration Template
+# Copy this to .env and fill in your actual values
+
+# PostgreSQL Configuration
+PG_HOST=localhost
+PG_PORT=5432
+PG_USER=postgres
+PG_PASSWORD=your_password
+PG_DBNAME=hecate
+VOCAB_SCHEMA=vocab_27_feb_2026
+
+# Qdrant Configuration
+QDRANT_URL=http://localhost:6333
+
+# Note: No API key needed! Uses local BAAI/bge-large-en-v1.5 model
