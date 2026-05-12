@@ -38,6 +38,12 @@ PGPASSWORD=yourpassword psql -h localhost -p 5433 -U postgres -d hecate -c "SELE
 
 Expected: **7 527 642 rows**
 
+```bash
+PGPASSWORD=yourpassword psql -h localhost -p 5433 -U postgres -d hecate -c "SELECT COUNT(*) FROM vocab_27_feb_2026.phoebe;"
+```
+
+Expected: **4 967 307 rows**
+
 ## Users
 
 | User | Password | Access |
@@ -45,3 +51,8 @@ Expected: **7 527 642 rows**
 | `postgres` | set via `POSTGRES_PASSWORD` | superuser |
 | `hecate_app` | `hecate_app_password` | read/write on `vocab_27_feb_2026` |
 | `hecate_readonly` | `hecate_readonly_password` | read-only on `vocab_27_feb_2026` |
+
+## Notes
+
+- `PHOEBE.csv` uses **comma** delimiter (not tab like other OHDSI files). `init-db.sh` handles this separately.
+- First `docker run` restore takes 3–5 min. Add `--jobs $(nproc)` to `pg_restore` in `restore.sh` to cut this to ~1–2 min.
