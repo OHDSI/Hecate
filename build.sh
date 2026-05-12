@@ -39,10 +39,10 @@ if [ -z "$(ls -A qdrant/collections/ 2>/dev/null | grep -v README.md | grep -v .
 fi
 
 # Build PostgreSQL image
-echo "Building PostgreSQL image..."
+echo "Building PostgreSQL image (this may take 10-20 minutes as it loads CSV data)..."
 docker build -t hecate-postgres:latest ./postgres
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✓ PostgreSQL image built successfully${NC}"
+    echo -e "${GREEN}✓ PostgreSQL image built successfully (database pre-initialized)${NC}"
 else
     echo -e "${RED}✗ Failed to build PostgreSQL image${NC}"
     exit 1

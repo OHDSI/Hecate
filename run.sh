@@ -53,7 +53,7 @@ echo -e "${GREEN}✓ Cleanup complete${NC}"
 echo ""
 
 # Start PostgreSQL
-echo "Starting PostgreSQL..."
+echo "Starting PostgreSQL (with pre-initialized database)..."
 docker run -d \
     --name $DB_CONTAINER \
     --network $NETWORK_NAME \
@@ -67,6 +67,7 @@ docker run -d \
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ PostgreSQL container started${NC}"
+    echo "  Note: Database is pre-initialized (loaded during image build)"
 else
     echo -e "${RED}✗ Failed to start PostgreSQL${NC}"
     exit 1
