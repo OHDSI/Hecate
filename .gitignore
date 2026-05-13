@@ -78,3 +78,4 @@ qdrant/collections/*
 # Docker compose volumes (legacy)
 postgres_data/
 qdrant_storage/
+FinOMOP_vocabularies.zip
