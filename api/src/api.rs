@@ -322,7 +322,6 @@ async fn search(
     if let Some(existing) = opt_existing {
         existing.iter().for_each(|x| ids.push(x.to_string()));
     } else {
-        info!("Nothing found in search index");
         let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
         let concepts = match input.parse::<i32>() {
             Ok(id) => db::get_concept_name_by_number(&pg_client, id).await?,
@@ -332,7 +331,7 @@ async fn search(
         if !concepts.is_empty() {
             for c in concepts {
                 let lower = c.to_lowercase();
-                info!("{}", lower);
+                info!("{:?} resolved to {:?} in vocabulary", input, lower);
                 let res = if collection_name == CONCEPT_COLLECTION {
                     state.concept_index.get(lower.as_str())
                 } else {

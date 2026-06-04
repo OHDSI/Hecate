@@ -18,7 +18,6 @@ pub async fn get_concept_name_by_number(
     client: &Client,
     input: i32,
 ) -> Result<Vec<String>, PgError> {
-    info!("Checking vocabulary for {}", input);
     let stmt = sql(include_str!("../sql/select_concept_for_numeric_input.sql"));
     let stmt = client.prepare(&stmt).await?;
 
@@ -33,7 +32,6 @@ pub async fn get_concept_name_by_number(
 }
 
 pub async fn get_concept_by_id(client: &Client, input: i32) -> Result<Concept, PgError> {
-    info!("Checking vocabulary for {}", input);
     let stmt = sql(include_str!("../sql/select_concept_by_id.sql"));
     let stmt = client.prepare(&stmt).await?;
 
@@ -48,7 +46,6 @@ pub async fn get_concept_relationships(
     client: &Client,
     input: i32,
 ) -> Result<Vec<RelatedConcept>, PgError> {
-    info!("Checking vocabulary for {}", input);
     let stmt = sql(include_str!("../sql/select_related_concepts.sql"));
     let stmt = client.prepare(&stmt).await?;
 
@@ -65,7 +62,6 @@ pub async fn get_concept_phoebe(
     client: &Client,
     input: i32,
 ) -> Result<Vec<RelatedConcept>, PgError> {
-    info!("Checking vocabulary for {}", input);
     let stmt = sql(include_str!("../sql/select_phoebe_concepts.sql"));
     let stmt = client.prepare(&stmt).await?;
 
@@ -82,7 +78,6 @@ pub async fn get_concept_name_by_string(
     client: &Client,
     input: &str,
 ) -> Result<Vec<String>, PgError> {
-    info!("Checking vocabulary for {}", input);
     let stmt = sql(include_str!(
         "../sql/select_concept_for_non_numeric_input.sql"
     ));
