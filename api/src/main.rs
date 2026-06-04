@@ -104,6 +104,7 @@ async fn create_state(config: &Configs) -> anyhow::Result<Data<StateWrapper>> {
 
     info!("Initializing Qdrant client");
     let qdrant_client = Qdrant::from_url(&config.qdrant_uri)
+        .timeout(Duration::from_secs(15))
         .build()
         .context("Failed to build Qdrant client")?;
     qdrant_client
