@@ -65,8 +65,8 @@ impl From<ScoredPoint> for SearchResponse {
                 }
                 concept
             }
-            Err(_) => {
-                log::error!("Failed to deserialize ScoredPoint payload");
+            Err(e) => {
+                log::error!("Failed to deserialize ScoredPoint payload: {e}. Raw: {payload}");
                 SearchResponse {
                     concept_name: String::new(),
                     concept_name_lower: String::new(),

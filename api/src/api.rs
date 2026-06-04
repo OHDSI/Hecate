@@ -362,7 +362,7 @@ async fn search(
             let limit = parameters.limit.unwrap_or(100);
             // Request more results from qdrant to account for filtering
             let search_limit = 250;
-            let recommendations = recommend(input, client, search_limit, collection_name)
+            let recommendations = recommend(input, client, &state.openai_client, search_limit, collection_name)
                 .await
                 .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
             for sp in recommendations {
@@ -701,10 +701,11 @@ async fn retrieve_point_from_db(
 async fn recommend(
     input: &str,
     client: &Qdrant,
+    openai_client: &async_openai::Client<async_openai::config::OpenAIConfig>,
     limit: u64,
     collection_name: &str,
 ) -> Result<Vec<ScoredPoint>, anyhow::Error> {
-    let vector = fetch_embeddings(input).await?.embedding;
+    let vector = fetch_embeddings(openai_client, input).await?.embedding;
     Ok(client
         .search_points(SearchPointsBuilder::new(collection_name, vector, limit).with_payload(true))
         .await?

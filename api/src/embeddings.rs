@@ -1,11 +1,11 @@
 use anyhow::{Context, Result};
 use async_openai::Client;
+use async_openai::config::OpenAIConfig;
 use async_openai::types::embeddings::{CreateEmbeddingRequestArgs, Embedding};
 use log::info;
 
-pub async fn fetch_embeddings(input: &str) -> Result<Embedding> {
+pub async fn fetch_embeddings(client: &Client<OpenAIConfig>, input: &str) -> Result<Embedding> {
     info!("Fetching embedding from OpenAI for {:?}", input);
-    let client = Client::new();
 
     let request = CreateEmbeddingRequestArgs::default()
         .model("text-embedding-3-large")

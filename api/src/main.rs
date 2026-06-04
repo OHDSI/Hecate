@@ -24,6 +24,7 @@ use deadpool_postgres::Pool;
 use dotenvy::dotenv;
 use log::{LevelFilter, info};
 use moka::future::Cache;
+use async_openai::Client as OpenAIClient;
 use qdrant_client::Qdrant;
 use std::collections::HashMap;
 use std::fs;
@@ -36,6 +37,7 @@ struct StateWrapper {
     concept_record_counts: HashMap<i32, i64>,
     pg_pool: Pool,
     qdrant_client: Qdrant,
+    openai_client: OpenAIClient<async_openai::config::OpenAIConfig>,
     expand_cache: Cache<ExpandCacheKey, ExpandResponse>,
     children_cache: Cache<i32, Vec<Concept>>,
     parents_cache: Cache<i32, Vec<Concept>>,
@@ -160,11 +162,15 @@ async fn create_state(config: &Configs) -> anyhow::Result<Data<StateWrapper>> {
         ))
         .build();
 
+    info!("Initializing OpenAI client");
+    let openai_client = OpenAIClient::new();
+
     let state = Data::new(StateWrapper {
         concept_index,
         concept_record_counts,
         pg_pool,
         qdrant_client,
+        openai_client,
         expand_cache,
         children_cache,
         parents_cache,
