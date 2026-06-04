@@ -7,7 +7,7 @@ use crate::utils::deserialize_string_or_vec;
 use crate::validation;
 use crate::{StateWrapper, db};
 use actix_web::web::{Data, Json, Query};
-use actix_web::{Error, HttpResponse, get, post, web};
+use actix_web::{Error, HttpResponse, error::ErrorInternalServerError, get, post, web};
 use log::info;
 use qdrant_client::qdrant::condition::ConditionOneOf;
 use qdrant_client::qdrant::point_id::PointIdOptions;
@@ -22,7 +22,43 @@ use std::collections::HashMap;
 pub const CONCEPT_COLLECTION: &str = "meddra";
 pub const SYNONYMS_COLLECTION: &str = "synonyms";
 
-#[derive(Debug, Deserialize)]
+fn normalized_values(values: &[String]) -> Vec<String> {
+    let mut normalized = values
+        .iter()
+        .map(|value| value.trim().to_ascii_lowercase())
+        .collect::<Vec<_>>();
+    normalized.sort_unstable();
+    normalized
+}
+
+fn search_cache_key(params: &Parameters, default_limit: u64) -> String {
+    let mut parts = vec![
+        format!("q={}", params.q.trim()),
+        format!("limit={}", params.limit.unwrap_or(default_limit)),
+    ];
+    if let Some(vocab_ids) = &params.vocabulary_id {
+        let sorted = normalized_values(vocab_ids);
+        parts.push(format!("vocab={}", sorted.join(",")));
+    }
+    if let Some(exclude_vocab_ids) = &params.exclude_vocabulary_id {
+        let sorted = normalized_values(exclude_vocab_ids);
+        parts.push(format!("excl_vocab={}", sorted.join(",")));
+    }
+    if let Some(sc) = &params.standard_concept {
+        parts.push(format!("std={}", sc.trim()));
+    }
+    if let Some(domain_ids) = &params.domain_id {
+        let sorted = normalized_values(domain_ids);
+        parts.push(format!("domain={}", sorted.join(",")));
+    }
+    if let Some(class_ids) = &params.concept_class_id {
+        let sorted = normalized_values(class_ids);
+        parts.push(format!("class={}", sorted.join(",")));
+    }
+    parts.join("&")
+}
+
+#[derive(Clone, Debug, Deserialize)]
 struct Parameters {
     q: String,
     #[serde(default, deserialize_with = "deserialize_string_or_vec")]
@@ -146,6 +182,26 @@ async fn search_standard(
     parameters: Query<Parameters>,
     state: Data<StateWrapper>,
 ) -> Result<Json<Vec<SearchResponse>>, Error> {
+    let cache_key = search_cache_key(&parameters, 25);
+    let parameters = parameters.into_inner();
+    let state_for_cache = state.clone();
+    let result = state
+        .search_standard_cache
+        .try_get_with(cache_key, async move {
+            search_standard_uncached(Query(parameters), state_for_cache)
+                .await
+                .map_err(|err| err.to_string())
+        })
+        .await
+        .map_err(|err| ErrorInternalServerError(err.to_string()))?;
+
+    Ok(Json(result))
+}
+
+async fn search_standard_uncached(
+    parameters: Query<Parameters>,
+    state: Data<StateWrapper>,
+) -> Result<Vec<SearchResponse>, Error> {
     let limit = parameters.limit.unwrap_or(25) as usize;
     let mut query_string = format!("q={}", parameters.q);
     if let Some(exclude_vocab_ids) = &parameters.exclude_vocabulary_id {
@@ -225,7 +281,7 @@ async fn search_standard(
             .unwrap_or(std::cmp::Ordering::Equal)
     });
 
-    Ok(Json(search_responses))
+    Ok(search_responses)
 }
 
 #[get("/api/search")]
@@ -233,7 +289,18 @@ async fn search_api(
     parameters: Query<Parameters>,
     state: Data<StateWrapper>,
 ) -> Result<Json<Vec<SearchResponse>>, Error> {
-    Ok(Json(search(parameters, state, CONCEPT_COLLECTION).await?))
+    let cache_key = search_cache_key(&parameters, 100);
+    let state_for_cache = state.clone();
+    let result = state
+        .search_cache
+        .try_get_with(cache_key, async move {
+            search(parameters, state_for_cache, CONCEPT_COLLECTION)
+                .await
+                .map_err(|err| err.to_string())
+        })
+        .await
+        .map_err(|err| ErrorInternalServerError(err.to_string()))?;
+    Ok(Json(result))
 }
 
 async fn search(

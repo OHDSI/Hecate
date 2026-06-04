@@ -14,7 +14,7 @@ use crate::api::{
     get_concept_phoebe, get_concept_relationships, search_api, search_standard,
 };
 use crate::config::Configs;
-use crate::domain::{Concept, ExpandCacheKey, ExpandResponse};
+use crate::domain::{Concept, ExpandCacheKey, ExpandResponse, SearchResponse};
 use actix_cors::Cors;
 use actix_web::web::Data;
 use actix_web::{App, HttpServer};
@@ -39,6 +39,8 @@ struct StateWrapper {
     expand_cache: Cache<ExpandCacheKey, ExpandResponse>,
     children_cache: Cache<i32, Vec<Concept>>,
     parents_cache: Cache<i32, Vec<Concept>>,
+    search_standard_cache: Cache<String, Vec<SearchResponse>>,
+    search_cache: Cache<String, Vec<SearchResponse>>,
 }
 
 #[actix_web::main]
@@ -130,6 +132,34 @@ async fn create_state(config: &Configs) -> anyhow::Result<Data<StateWrapper>> {
         .time_to_live(Duration::from_secs(config.cache_ttl_days * 24 * 60 * 60))
         .build();
 
+    info!(
+        "Initializing search_standard cache (max: {} bytes, ttl: {} days)",
+        config.search_cache_max_bytes, config.search_cache_ttl_days
+    );
+    let search_standard_cache: Cache<String, Vec<SearchResponse>> = Cache::builder()
+        .max_capacity(config.search_cache_max_bytes)
+        .weigher(|_k, v: &Vec<SearchResponse>| {
+            serde_json::to_vec(v).map(|b| b.len() as u32).unwrap_or(1)
+        })
+        .time_to_live(Duration::from_secs(
+            config.search_cache_ttl_days * 24 * 60 * 60,
+        ))
+        .build();
+
+    info!(
+        "Initializing search cache (max: {} bytes, ttl: {} days)",
+        config.search_cache_max_bytes, config.search_cache_ttl_days
+    );
+    let search_cache: Cache<String, Vec<SearchResponse>> = Cache::builder()
+        .max_capacity(config.search_cache_max_bytes)
+        .weigher(|_k, v: &Vec<SearchResponse>| {
+            serde_json::to_vec(v).map(|b| b.len() as u32).unwrap_or(1)
+        })
+        .time_to_live(Duration::from_secs(
+            config.search_cache_ttl_days * 24 * 60 * 60,
+        ))
+        .build();
+
     let state = Data::new(StateWrapper {
         concept_index,
         concept_record_counts,
@@ -138,6 +168,8 @@ async fn create_state(config: &Configs) -> anyhow::Result<Data<StateWrapper>> {
         expand_cache,
         children_cache,
         parents_cache,
+        search_standard_cache,
+        search_cache,
     });
     info!("App data loaded");
     Ok(state)

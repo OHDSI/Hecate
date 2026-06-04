@@ -132,6 +132,8 @@ VOCAB_SCHEMA=vocab_27_feb_2026
 # Cache settings (optional, these are the defaults)
 CACHE_MAX_CAPACITY=64
 CACHE_TTL_DAYS=21
+SEARCH_CACHE_MAX_BYTES=104857600
+SEARCH_CACHE_TTL_DAYS=30
 
 # OpenAI (for embedding unknown search queries)
 OPENAI_API_KEY=sk-your-key-here

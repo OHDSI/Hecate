@@ -15,7 +15,7 @@ where
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct SearchResponse {
     pub concept_name: String,
     pub concept_name_lower: String,

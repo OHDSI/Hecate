@@ -20,6 +20,8 @@ pub struct Configs {
     pub pg: deadpool_postgres::Config,
     pub cache_max_capacity: u64,
     pub cache_ttl_days: u64,
+    pub search_cache_max_bytes: u64,
+    pub search_cache_ttl_days: u64,
 }
 
 impl Default for Configs {
@@ -32,6 +34,8 @@ impl Default for Configs {
             pg: deadpool_postgres::Config::default(),
             cache_max_capacity: 64,
             cache_ttl_days: 21,
+            search_cache_max_bytes: 100 * 1024 * 1024,
+            search_cache_ttl_days: 30,
         }
     }
 }
