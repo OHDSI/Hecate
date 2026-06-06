@@ -13,7 +13,7 @@ thiserror = "2"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 actix-cors = "0.7.1"
 actix-web = { version = "4.13.0" }
-async-openai = { version = "0.40.3", features = ["embedding"] }
+async-openai = { version = "0.41.0", features = ["embedding"] }
 chrono = { version = "0.4.45", features = ["serde" ] }
 confik = "0.15.12"
 deadpool-postgres = { version = "0.14.1", features = ["serde"] }

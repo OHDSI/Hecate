@@ -17,7 +17,8 @@ use crate::config::Configs;
 use crate::domain::{Concept, ExpandCacheKey, ExpandResponse, SearchResponse};
 use actix_cors::Cors;
 use actix_web::web::Data;
-use actix_web::{App, HttpServer};
+use actix_web::web::QueryConfig;
+use actix_web::{App, HttpResponse, HttpServer};
 use anyhow::Context;
 use confik::{Configuration, EnvSource};
 use deadpool_postgres::Pool;
@@ -71,8 +72,17 @@ async fn main() -> std::io::Result<()> {
             cors = cors.allowed_origin(origin);
         }
 
+        let query_config = QueryConfig::default().error_handler(|err, _req| {
+            let response = HttpResponse::BadRequest().json(serde_json::json!({
+                "error": err.to_string(),
+                "docs": "https://hecate.pantheon-hds.com/openapi.yaml"
+            }));
+            actix_web::error::InternalError::from_response(err, response).into()
+        });
+
         App::new()
             .wrap(cors)
+            .app_data(query_config)
             .service(search_standard)
             .service(search_api)
             .service(get_concept_by_id)

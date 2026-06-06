@@ -20,6 +20,8 @@ Hecate consists of three main components:
 
 - [Ariadne](https://ohdsi.github.io/Ariadne/)
 - [EMA Authorized Drug Mappings](https://github.com/mi-erasmusmc/ema-authorised-to-rxnorm-mappings)
+- [KEEPER](https://github.com/OHDSI/Keeper)
+- [Phenelope](https://github.com/OHDSI/Phenelope)
 - [Study Agent](https://github.com/OHDSI/StudyAgent)
 
 ## Running locally
