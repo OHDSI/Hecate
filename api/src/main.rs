@@ -20,12 +20,12 @@ use actix_web::web::Data;
 use actix_web::web::QueryConfig;
 use actix_web::{App, HttpResponse, HttpServer};
 use anyhow::Context;
+use async_openai::Client as OpenAIClient;
 use confik::{Configuration, EnvSource};
 use deadpool_postgres::Pool;
 use dotenvy::dotenv;
 use log::{LevelFilter, info};
 use moka::future::Cache;
-use async_openai::Client as OpenAIClient;
 use qdrant_client::Qdrant;
 use std::collections::HashMap;
 use std::fs;
@@ -44,6 +44,7 @@ struct StateWrapper {
     parents_cache: Cache<i32, Vec<Concept>>,
     search_standard_cache: Cache<String, Vec<SearchResponse>>,
     search_cache: Cache<String, Vec<SearchResponse>>,
+    embedding_cache: Cache<String, Vec<f32>>,
 }
 
 #[actix_web::main]
@@ -127,10 +128,10 @@ async fn create_state(config: &Configs) -> anyhow::Result<Data<StateWrapper>> {
 
     info!(
         "Initializing concept expansion cache (max_capacity: {}, ttl: {} days)",
-        config.cache_max_capacity, config.cache_ttl_days
+        config.expand_cache_max_entries, config.cache_ttl_days
     );
     let expand_cache = Cache::builder()
-        .max_capacity(config.cache_max_capacity)
+        .max_capacity(config.expand_cache_max_entries)
         .time_to_live(Duration::from_secs(config.cache_ttl_days * 24 * 60 * 60))
         .build();
 
@@ -146,31 +147,30 @@ async fn create_state(config: &Configs) -> anyhow::Result<Data<StateWrapper>> {
         .build();
 
     info!(
-        "Initializing search_standard cache (max: {} bytes, ttl: {} days)",
-        config.search_cache_max_bytes, config.search_cache_ttl_days
+        "Initializing search_standard cache (max: {} entries, ttl: {} days)",
+        config.search_cache_max_entries, config.cache_ttl_days
     );
     let search_standard_cache: Cache<String, Vec<SearchResponse>> = Cache::builder()
-        .max_capacity(config.search_cache_max_bytes)
-        .weigher(|_k, v: &Vec<SearchResponse>| {
-            serde_json::to_vec(v).map(|b| b.len() as u32).unwrap_or(1)
-        })
-        .time_to_live(Duration::from_secs(
-            config.search_cache_ttl_days * 24 * 60 * 60,
-        ))
+        .max_capacity(config.search_cache_max_entries)
+        .time_to_live(Duration::from_secs(config.cache_ttl_days * 24 * 60 * 60))
         .build();
 
     info!(
-        "Initializing search cache (max: {} bytes, ttl: {} days)",
-        config.search_cache_max_bytes, config.search_cache_ttl_days
+        "Initializing search cache (max: {} entries, ttl: {} days)",
+        config.search_cache_max_entries, config.cache_ttl_days
     );
     let search_cache: Cache<String, Vec<SearchResponse>> = Cache::builder()
-        .max_capacity(config.search_cache_max_bytes)
-        .weigher(|_k, v: &Vec<SearchResponse>| {
-            serde_json::to_vec(v).map(|b| b.len() as u32).unwrap_or(1)
-        })
-        .time_to_live(Duration::from_secs(
-            config.search_cache_ttl_days * 24 * 60 * 60,
-        ))
+        .max_capacity(config.search_cache_max_entries)
+        .time_to_live(Duration::from_secs(config.cache_ttl_days * 24 * 60 * 60))
+        .build();
+
+    info!(
+        "Initializing embedding cache (max: {} entries, ttl: {} days)",
+        config.embedding_cache_max_entries, config.cache_ttl_days
+    );
+    let embedding_cache: Cache<String, Vec<f32>> = Cache::builder()
+        .max_capacity(config.embedding_cache_max_entries)
+        .time_to_live(Duration::from_secs(config.cache_ttl_days * 24 * 60 * 60))
         .build();
 
     info!("Initializing OpenAI client");
@@ -187,6 +187,7 @@ async fn create_state(config: &Configs) -> anyhow::Result<Data<StateWrapper>> {
         parents_cache,
         search_standard_cache,
         search_cache,
+        embedding_cache,
     });
     info!("App data loaded");
     Ok(state)

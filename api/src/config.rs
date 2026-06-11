@@ -18,10 +18,10 @@ pub struct Configs {
     pub cors_origins: Vec<String>,
     #[confik(from = DbConfig)]
     pub pg: deadpool_postgres::Config,
-    pub cache_max_capacity: u64,
+    pub expand_cache_max_entries: u64,
     pub cache_ttl_days: u64,
-    pub search_cache_max_bytes: u64,
-    pub search_cache_ttl_days: u64,
+    pub search_cache_max_entries: u64,
+    pub embedding_cache_max_entries: u64,
 }
 
 impl Default for Configs {
@@ -32,10 +32,10 @@ impl Default for Configs {
             vectordb_data_path: "sample_data.txt".to_string(),
             cors_origins: vec!["http://localhost:5173".to_string()],
             pg: deadpool_postgres::Config::default(),
-            cache_max_capacity: 64,
-            cache_ttl_days: 21,
-            search_cache_max_bytes: 100 * 1024 * 1024,
-            search_cache_ttl_days: 30,
+            expand_cache_max_entries: 64,
+            cache_ttl_days: 35,
+            search_cache_max_entries: 1000,
+            embedding_cache_max_entries: 128_000,
         }
     }
 }

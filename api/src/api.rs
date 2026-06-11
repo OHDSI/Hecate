@@ -1,6 +1,6 @@
 use crate::concept_graph::ConceptExpander;
 use crate::domain::{Concept, SearchResponse};
-use crate::embeddings::fetch_embeddings;
+use crate::embeddings::fetch_embeddings_cached;
 use crate::errors::PgError;
 use crate::umls::get_umls_definition_from_nlm;
 use crate::utils::deserialize_string_or_vec;
@@ -9,6 +9,7 @@ use crate::{StateWrapper, db};
 use actix_web::web::{Data, Json, Query};
 use actix_web::{Error, HttpResponse, error::ErrorInternalServerError, get, post, web};
 use log::info;
+use moka::future::Cache;
 use qdrant_client::qdrant::condition::ConditionOneOf;
 use qdrant_client::qdrant::point_id::PointIdOptions;
 use qdrant_client::qdrant::{
@@ -361,9 +362,16 @@ async fn search(
             let limit = parameters.limit.unwrap_or(100);
             // Request more results from qdrant to account for filtering
             let search_limit = 250;
-            let recommendations = recommend(input, client, &state.openai_client, search_limit, collection_name)
-                .await
-                .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+            let recommendations = recommend(
+                input,
+                client,
+                &state.openai_client,
+                &state.embedding_cache,
+                search_limit,
+                collection_name,
+            )
+            .await
+            .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
             for sp in recommendations {
                 let mut concept: SearchResponse = SearchResponse::from(sp);
                 // Apply filters after retrieval due to performance issues with filtering in qdrant
@@ -701,10 +709,11 @@ async fn recommend(
     input: &str,
     client: &Qdrant,
     openai_client: &async_openai::Client<async_openai::config::OpenAIConfig>,
+    embedding_cache: &Cache<String, Vec<f32>>,
     limit: u64,
     collection_name: &str,
 ) -> Result<Vec<ScoredPoint>, anyhow::Error> {
-    let vector = fetch_embeddings(openai_client, input).await?.embedding;
+    let vector = fetch_embeddings_cached(openai_client, input, embedding_cache).await?;
     Ok(client
         .search_points(SearchPointsBuilder::new(collection_name, vector, limit).with_payload(true))
         .await?
