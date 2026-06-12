@@ -1,5 +1,5 @@
 use crate::concept_graph::ConceptExpander;
-use crate::domain::{Concept, SearchResponse};
+use crate::domain::{Concept, PhoebeResponse, SearchResponse};
 use crate::embeddings::fetch_embeddings_cached;
 use crate::errors::PgError;
 use crate::umls::get_umls_definition_from_nlm;
@@ -480,6 +480,52 @@ async fn get_concept_phoebe(
     }
 
     Ok(HttpResponse::Ok().json(concepts))
+}
+
+#[derive(Debug, Deserialize)]
+struct BulkPhoebeRequest {
+    ids: Vec<i32>,
+}
+
+#[post("/api/concepts/phoebe/bulk")]
+async fn get_concept_phoebe_bulk(
+    request: Json<BulkPhoebeRequest>,
+    state: Data<StateWrapper>,
+) -> Result<HttpResponse, Error> {
+    let mut ids = request.ids.clone();
+    ids.sort_unstable();
+    ids.dedup();
+
+    if ids.is_empty() {
+        return Ok(HttpResponse::Ok().json(Vec::<PhoebeResponse>::new()));
+    }
+    if ids.len() > 500 {
+        return Ok(HttpResponse::BadRequest().json("Too many IDs: maximum 500 per request"));
+    }
+
+    info!("Get phoebe bulk for {} concepts", ids.len());
+    let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
+    let mut phoebe_map = db::get_bulk_phoebe(&pg_client, &ids).await?;
+
+    for results in phoebe_map.values_mut() {
+        for concept in results.iter_mut() {
+            concept.record_count = state
+                .concept_record_counts
+                .get(&concept.concept_id)
+                .copied()
+                .unwrap_or(0);
+        }
+    }
+
+    let response: Vec<PhoebeResponse> = ids
+        .iter()
+        .map(|&id| PhoebeResponse {
+            concept_id: id,
+            results: phoebe_map.remove(&id).unwrap_or_default(),
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(response))
 }
 
 #[get("/api/concepts/{id}/definition")]

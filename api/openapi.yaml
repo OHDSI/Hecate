@@ -285,6 +285,30 @@ paths:
         '500':
           description: Internal server error
 
+  /api/concepts/phoebe/bulk:
+    post:
+      summary: Get PHOEBE relationships for multiple concepts
+      description: Retrieve PHOEBE relationships for up to 500 concepts in a single request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkPhoebeRequest'
+      responses:
+        '200':
+          description: PHOEBE relationships grouped by input concept ID
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PhoebeResponse'
+        '400':
+          description: Bad request (e.g. more than 500 IDs supplied)
+        '500':
+          description: Internal server error
+
   /api/concepts/{id}/definition:
     get:
       summary: Get concept definition
@@ -588,6 +612,38 @@ components:
         - concept_code
         - record_count
         - children
+
+    BulkPhoebeRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          description: List of concept IDs to look up (maximum 500)
+          maxItems: 500
+          items:
+            type: integer
+            format: int32
+          example: [201826, 4329847, 321822]
+      required:
+        - ids
+
+    PhoebeResponse:
+      type: object
+      description: PHOEBE results for a single input concept
+      properties:
+        concept_id:
+          type: integer
+          format: int32
+          description: The input concept ID this result corresponds to
+          example: 201826
+        results:
+          type: array
+          description: PHOEBE relationships for this concept (empty array if none found)
+          items:
+            $ref: '#/components/schemas/RelatedConcept'
+      required:
+        - concept_id
+        - results
 
     Error:
       type: object

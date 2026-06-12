@@ -11,7 +11,8 @@ mod validation;
 
 use crate::api::{
     analyze_concept_set, get_concept_by_id, get_concept_definition, get_concept_expand,
-    get_concept_phoebe, get_concept_relationships, search_api, search_standard,
+    get_concept_phoebe, get_concept_phoebe_bulk, get_concept_relationships, search_api,
+    search_standard,
 };
 use crate::config::Configs;
 use crate::domain::{Concept, ExpandCacheKey, ExpandResponse, SearchResponse};
@@ -90,6 +91,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_concept_relationships)
             .service(get_concept_definition)
             .service(get_concept_phoebe)
+            .service(get_concept_phoebe_bulk)
             .service(get_concept_expand)
             .service(analyze_concept_set)
             .app_data(state.clone())

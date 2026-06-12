@@ -25,6 +25,7 @@ qdrant-client = "1.18.0"
 reqwest = { version = "0.13.4", features = ["json"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
+time = "=0.3.36"
 tokio-pg-mapper = "0.2.0"
 tokio-pg-mapper-derive = "0.2.0"
 tokio-postgres = { version = "0.7.17", features = ["with-chrono-0_4"] }

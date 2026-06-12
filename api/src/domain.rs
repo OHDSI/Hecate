@@ -143,6 +143,12 @@ pub struct RelatedConcept {
     pub record_count: i64,
 }
 
+#[derive(Debug, Serialize)]
+pub struct PhoebeResponse {
+    pub concept_id: i32,
+    pub results: Vec<RelatedConcept>,
+}
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ExpandConcept {
     pub concept_id: i32,

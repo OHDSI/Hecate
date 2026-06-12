@@ -74,6 +74,61 @@ pub async fn get_concept_phoebe(
     Ok(results)
 }
 
+pub async fn get_bulk_phoebe(
+    client: &Client,
+    concept_ids: &[i32],
+) -> Result<HashMap<i32, Vec<RelatedConcept>>, PgError> {
+    if concept_ids.is_empty() {
+        return Ok(HashMap::new());
+    }
+
+    info!("Getting bulk phoebe for {} concepts", concept_ids.len());
+
+    let placeholders: Vec<String> = (1..=concept_ids.len()).map(|i| format!("${}", i)).collect();
+    let sql = format!(
+        "SELECT p.concept_id_1 AS source_concept_id,
+                p.relationship_id AS relationship_id,
+                c.concept_id AS concept_id,
+                c.concept_name AS concept_name,
+                c.vocabulary_id AS vocabulary_id,
+                0::bigint AS record_count
+         FROM {schema}.phoebe AS p
+         JOIN {schema}.concept AS c ON p.concept_id_2 = c.concept_id
+         WHERE p.concept_id_1 IN ({placeholders})
+         ORDER BY p.concept_id_1, relationship_id, vocabulary_id, concept_name",
+        schema = *VOCAB_SCHEMA,
+        placeholders = placeholders.join(", ")
+    );
+
+    let stmt = client.prepare(&sql).await?;
+
+    let params: Vec<&(dyn tokio_postgres::types::ToSql + Sync)> = concept_ids
+        .iter()
+        .map(|id| id as &(dyn tokio_postgres::types::ToSql + Sync))
+        .collect();
+
+    let rows = client.query(&stmt, &params).await?;
+
+    let mut result: HashMap<i32, Vec<RelatedConcept>> = HashMap::new();
+    for &id in concept_ids {
+        result.insert(id, Vec::new());
+    }
+
+    for row in rows {
+        let source_id: i32 = row.get("source_concept_id");
+        let concept = RelatedConcept {
+            relationship_id: row.get("relationship_id"),
+            concept_id: row.get("concept_id"),
+            concept_name: row.get("concept_name"),
+            vocabulary_id: row.get("vocabulary_id"),
+            record_count: row.get("record_count"),
+        };
+        result.entry(source_id).or_default().push(concept);
+    }
+
+    Ok(result)
+}
+
 pub async fn get_concept_name_by_string(
     client: &Client,
     input: &str,
