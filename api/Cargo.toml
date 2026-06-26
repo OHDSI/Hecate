@@ -12,14 +12,14 @@ anyhow = "1"
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 actix-cors = "0.7.1"
-actix-web = { version = "4.13.0" }
-async-openai = { version = "0.41.0", features = ["embedding"] }
+actix-web = { version = "4.14.0" }
+async-openai = { version = "0.41.1", features = ["embedding"] }
 chrono = { version = "0.4.45", features = ["serde" ] }
 confik = "0.15.12"
 deadpool-postgres = { version = "0.14.1", features = ["serde"] }
 dotenvy = "0.15.7"
-env_logger = "0.11.10"
-log = "0.4.32"
+env_logger = "0.11.11"
+log = "0.4.33"
 moka = { version = "0.12", features = ["future"] }
 qdrant-client = "1.18.0"
 reqwest = { version = "0.13.4", features = ["json"] }
@@ -28,5 +28,5 @@ serde_json = "1.0.150"
 time = "=0.3.36"
 tokio-pg-mapper = "0.2.0"
 tokio-pg-mapper-derive = "0.2.0"
-tokio-postgres = { version = "0.7.17", features = ["with-chrono-0_4"] }
-uuid = { version = "1.23.3", features = ["v4", "serde"] }
+tokio-postgres = { version = "0.7.18", features = ["with-chrono-0_4"] }
+uuid = { version = "1.23.4", features = ["v4", "serde"] }

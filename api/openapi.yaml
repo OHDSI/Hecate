@@ -288,7 +288,7 @@ paths:
   /api/concepts/phoebe/bulk:
     post:
       summary: Get PHOEBE relationships for multiple concepts
-      description: Retrieve PHOEBE relationships for up to 500 concepts in a single request
+      description: Retrieve PHOEBE relationships for up to 100 concepts in a single request
       requestBody:
         required: true
         content:
@@ -305,7 +305,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/PhoebeResponse'
         '400':
-          description: Bad request (e.g. more than 500 IDs supplied)
+          description: Bad request (e.g. more than 100 IDs supplied)
         '500':
           description: Internal server error
 
