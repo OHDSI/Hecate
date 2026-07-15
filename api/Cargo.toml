@@ -29,4 +29,4 @@ time = "=0.3.36"
 tokio-pg-mapper = "0.2.0"
 tokio-pg-mapper-derive = "0.2.0"
 tokio-postgres = { version = "0.7.18", features = ["with-chrono-0_4"] }
-uuid = { version = "1.23.4", features = ["v4", "serde"] }
+uuid = { version = "1.23.5", features = ["v4", "serde"] }
