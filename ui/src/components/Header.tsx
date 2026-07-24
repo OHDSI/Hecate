@@ -119,16 +119,18 @@ function HecateHeader() {
             border: 0,
             cursor: "pointer",
             height: "100%",
-            paddingRight: "0.3em",
+            padding: "0 0.3em 0 0",
           }}
         >
           <img
             src={hecateLogo}
             alt=""
             style={{
+              display: "block",
               height: "100%",
               mixBlendMode: "multiply",
               opacity: 0.8,
+              width: "auto",
             }}
           />
         </button>
