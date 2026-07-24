@@ -23,10 +23,10 @@ log = "0.4.33"
 moka = { version = "0.12", features = ["future"] }
 qdrant-client = "1.18.0"
 reqwest = { version = "0.13.4", features = ["json"] }
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.150"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
 time = "=0.3.36"
 tokio-pg-mapper = "0.2.0"
 tokio-pg-mapper-derive = "0.2.0"
 tokio-postgres = { version = "0.7.18", features = ["with-chrono-0_4"] }
-uuid = { version = "1.23.5", features = ["v4", "serde"] }
+uuid = { version = "1.24.0", features = ["v4", "serde"] }
