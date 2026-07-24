@@ -80,9 +80,7 @@ const useConceptFilters = () => {
 export default function ConceptTable(props: Readonly<ConceptTableProps>) {
   const { searchTerm, full } = props;
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [loading, setLoading] = useState<boolean>(false);
   const [selected, setSelected] = useState<ConceptRow[]>([]);
-  const [originalData, setOriginalData] = useState<ConceptRow[]>([]);
 
   const {
     filteredInfo,
@@ -93,14 +91,9 @@ export default function ConceptTable(props: Readonly<ConceptTableProps>) {
     handleChange,
   } = useConceptFilters();
 
-  const resetToOriginalData = useCallback(() => {
-    setSelected(originalData);
-  }, [originalData]);
-
   const modifiedClearFilters = useCallback(() => {
     clearFilters();
-    resetToOriginalData();
-  }, [clearFilters, resetToOriginalData]);
+  }, [clearFilters]);
 
   // If due to a result of the filter there is only one child we don't want to expand
   const applyFiltersToChildren = useCallback(
@@ -142,23 +135,24 @@ export default function ConceptTable(props: Readonly<ConceptTableProps>) {
     [],
   );
 
-  const filterData = useCallback(() => {
-    const filteredSelection: ConceptRow[] = originalData.map((row) => {
-      if (row.children && row.children.length > 1) {
-        const acceptedChildren = applyFiltersToChildren(
-          row.children,
-          currentFilters,
-        );
-        if (acceptedChildren.length === 1) {
-          return { ...acceptedChildren[0] };
-        } else {
-          return { ...row, children: acceptedChildren };
+  const filteredSelection = useMemo(
+    (): ConceptRow[] =>
+      selected.map((row) => {
+        if (row.children && row.children.length > 1) {
+          const acceptedChildren = applyFiltersToChildren(
+            row.children,
+            currentFilters,
+          );
+          if (acceptedChildren.length === 1) {
+            return { ...acceptedChildren[0] };
+          } else {
+            return { ...row, children: acceptedChildren };
+          }
         }
-      }
-      return { ...row };
-    });
-    setSelected(filteredSelection);
-  }, [originalData, currentFilters, applyFiltersToChildren]);
+        return { ...row };
+      }),
+    [selected, currentFilters, applyFiltersToChildren],
+  );
 
   const applyFilterForConceptsWithChildren = useCallback(
     (children: ConceptRow[]) => {
@@ -255,11 +249,12 @@ export default function ConceptTable(props: Readonly<ConceptTableProps>) {
     });
   }, []);
 
-  const doSearch = useCallback(
-    async (q: string) => {
-      setLoading(true);
-      try {
-        const results = await search(q);
+  useEffect(() => {
+    let cancelled = false;
+
+    void search(searchTerm)
+      .then((results) => {
+        if (cancelled) return;
         setFilterOptions({
           conceptClass: getFilterSelector("concept_class_id", results),
           domain: getFilterSelector("domain_id", results),
@@ -268,23 +263,15 @@ export default function ConceptTable(props: Readonly<ConceptTableProps>) {
           vocabulary: getFilterSelector("vocabulary_id", results),
         });
         setSelected(results);
-        setOriginalData(results);
-      } catch {
-        openNotification();
-      } finally {
-        setLoading(false);
-      }
-    },
-    [getFilterSelector, openNotification, setFilterOptions],
-  );
+      })
+      .catch(() => {
+        if (!cancelled) openNotification();
+      });
 
-  useEffect(() => {
-    void doSearch(searchTerm);
-  }, [searchTerm, doSearch]);
-
-  useEffect(() => {
-    filterData();
-  }, [filterData]);
+    return () => {
+      cancelled = true;
+    };
+  }, [searchTerm, getFilterSelector, openNotification, setFilterOptions]);
 
   const hasActiveFilters = Object.values(filteredInfo).some(
     (filter) => filter && filter.length > 0,
@@ -331,7 +318,7 @@ export default function ConceptTable(props: Readonly<ConceptTableProps>) {
         style={{ paddingTop: "1em", fontSize: "8px" }}
         columns={columns}
         onChange={handleChange}
-        dataSource={selected}
+        dataSource={filteredSelection}
         expandable={{
           childrenColumnName: "",
           indentSize: 5,
@@ -345,7 +332,6 @@ export default function ConceptTable(props: Readonly<ConceptTableProps>) {
           defaultCurrent: 1,
           showTotal: (total, range) => `${range[0]}-${range[1]} of ${total}`,
         }}
-        loading={loading}
       />
     </div>
   );

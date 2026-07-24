@@ -1,6 +1,6 @@
 import { Content } from "antd/es/layout/layout";
 import { Row, Table, TableProps, Tabs, TabsProps, Col, Card } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Concept } from "../@types/data-source";
 import { getConceptById, getConceptDefinition } from "../service/concepts.tsx";
 import { useParams } from "react-router-dom";
@@ -30,19 +30,22 @@ const columns: TableProps<
 
 function ConceptView() {
   const [concept, setConcept] = useState<Concept | undefined>(undefined);
-  const [conceptId, setConceptId] = useState<number>(0);
   const params = useParams();
+  const conceptId = useMemo(
+    () => Number.parseInt(params.id ?? "0", 10),
+    [params.id],
+  );
   const [definition, setDefinition] = useState<string>("");
   const [data, setData] = useState<
     ({ name: string; value: string } | { name: string; value: number })[]
   >([]);
 
   useEffect(() => {
-    const paramId = params?.id;
-    if (paramId) {
-      const id = Number.parseInt(paramId);
-      setConceptId(id);
-      getConceptById(id).then((resp) => {
+    if (params.id) {
+      let cancelled = false;
+
+      getConceptById(conceptId).then((resp) => {
+        if (cancelled) return;
         const c = resp[0];
         setConcept(c);
         const d = [
@@ -65,11 +68,15 @@ function ConceptView() {
         ];
         setData(d);
       });
-      getConceptDefinition(id).then((resp) => {
-        setDefinition(resp);
+      getConceptDefinition(conceptId).then((resp) => {
+        if (!cancelled) setDefinition(resp);
       });
+
+      return () => {
+        cancelled = true;
+      };
     }
-  }, [params]);
+  }, [conceptId, params.id]);
 
   const tabItems: TabsProps["items"] = [
     {

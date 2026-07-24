@@ -13,7 +13,6 @@ export default function ConceptHierarchyTable(
 ) {
   const { conceptId, full } = props;
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [loading, setLoading] = useState<boolean>(false);
 
   const columns: TableProps<ConceptExpandRow>["columns"] = [
     {
@@ -84,24 +83,21 @@ export default function ConceptHierarchyTable(
     });
   }, []);
 
-  const doSearch = useCallback(
-    async (conceptId: number) => {
-      setLoading(true);
-      try {
-        const results = await getConceptExpand(conceptId);
-        setSelected(results);
-      } catch {
-        openNotification();
-      } finally {
-        setLoading(false);
-      }
-    },
-    [openNotification],
-  );
-
   useEffect(() => {
-    void doSearch(conceptId);
-  }, [conceptId, doSearch]);
+    let cancelled = false;
+
+    void getConceptExpand(conceptId)
+      .then((results) => {
+        if (!cancelled) setSelected(results);
+      })
+      .catch(() => {
+        if (!cancelled) openNotification();
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [conceptId, openNotification]);
 
   return (
     <Table
@@ -118,7 +114,6 @@ export default function ConceptHierarchyTable(
         pageSize: 30,
         showTotal: (total, range) => `${range[0]}-${range[1]} of ${total}`,
       }}
-      loading={loading}
     />
   );
 }
