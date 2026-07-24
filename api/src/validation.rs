@@ -520,7 +520,7 @@ async fn query_and_process_recommendations(
 
     let query_points_builder = QueryPointsBuilder::new(COLLECTION_NAME)
         .with_payload(true)
-        .score_threshold(0.50)
+        .score_threshold(0.50_f32)
         .limit(1000)
         .query(recommend_query);
 
