@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Content } from "antd/es/layout/layout";
 import { Button, Input, Typography } from "antd";
 
@@ -73,6 +73,20 @@ function ConceptSets() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(
     null,
   );
+  const analysisMessages = useMemo(() => {
+    if (!analysisResult) return null;
+
+    return {
+      errors: analysisResult.errors.map((message) => ({
+        id: crypto.randomUUID(),
+        message,
+      })),
+      warnings: analysisResult.warnings.map((message) => ({
+        id: crypto.randomUUID(),
+        message,
+      })),
+    };
+  }, [analysisResult]);
 
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
@@ -243,9 +257,9 @@ function ConceptSets() {
                     >
                       <strong style={{ color: "#ff4d4f" }}>Errors:</strong>
                       <ul style={{ margin: "0.5em 0", paddingLeft: "2em" }}>
-                        {analysisResult.errors.map((error, index) => (
-                          <li key={index} style={{ color: "#ff4d4f" }}>
-                            {error}
+                        {analysisMessages?.errors.map(({ id, message }) => (
+                          <li key={id} style={{ color: "#ff4d4f" }}>
+                            {message}
                           </li>
                         ))}
                       </ul>
@@ -264,9 +278,9 @@ function ConceptSets() {
                     >
                       <strong style={{ color: "#faad14" }}>Warnings:</strong>
                       <ul style={{ margin: "0.5em 0", paddingLeft: "2em" }}>
-                        {analysisResult.warnings.map((warning, index) => (
-                          <li key={index} style={{ color: "#faad14" }}>
-                            {warning}
+                        {analysisMessages?.warnings.map(({ id, message }) => (
+                          <li key={id} style={{ color: "#faad14" }}>
+                            {message}
                           </li>
                         ))}
                       </ul>

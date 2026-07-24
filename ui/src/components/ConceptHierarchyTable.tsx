@@ -12,7 +12,7 @@ export default function ConceptHierarchyTable(
   }>,
 ) {
   const { conceptId, full } = props;
-  const [currentPage, setCurrentPage] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(false);
 
   const columns: TableProps<ConceptExpandRow>["columns"] = [
@@ -85,24 +85,22 @@ export default function ConceptHierarchyTable(
   }, []);
 
   const doSearch = useCallback(
-    (conceptId: number) => {
+    async (conceptId: number) => {
       setLoading(true);
-      getConceptExpand(conceptId)
-        .then((r) => {
-          setLoading(false);
-          setCurrentPage(1);
-          setSelected(r);
-        })
-        .catch(() => {
-          openNotification();
-          setLoading(false);
-        });
+      try {
+        const results = await getConceptExpand(conceptId);
+        setSelected(results);
+      } catch {
+        openNotification();
+      } finally {
+        setLoading(false);
+      }
     },
     [openNotification],
   );
 
   useEffect(() => {
-    doSearch(conceptId);
+    void doSearch(conceptId);
   }, [conceptId, doSearch]);
 
   return (

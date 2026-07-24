@@ -1,9 +1,9 @@
 import { ConceptRow } from "../@types/data-source";
-import { Link } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "../App.css";
 import { Button, notification, Table, TableProps, Tag } from "antd";
 import { search } from "../service/search.tsx";
+import { buildConceptTableColumns } from "./conceptTableColumns";
 
 type OnChange = NonNullable<TableProps<ConceptRow>["onChange"]>;
 type Filters = Parameters<OnChange>[1];
@@ -79,7 +79,7 @@ const useConceptFilters = () => {
 
 export default function ConceptTable(props: Readonly<ConceptTableProps>) {
   const { searchTerm, full } = props;
-  const [currentPage, setCurrentPage] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(false);
   const [selected, setSelected] = useState<ConceptRow[]>([]);
   const [originalData, setOriginalData] = useState<ConceptRow[]>([]);
@@ -105,35 +105,35 @@ export default function ConceptTable(props: Readonly<ConceptTableProps>) {
   // If due to a result of the filter there is only one child we don't want to expand
   const applyFiltersToChildren = useCallback(
     (children: ConceptRow[], filters: FilterState): ConceptRow[] => {
+      const conceptClassIds = new Set(filters.concept_class_id);
+      const domainIds = new Set(filters.domain_id);
+      const invalidReasons = new Set(filters.invalid_reason);
+      const standardConcepts = new Set(filters.standard_concept);
+      const vocabularyIds = new Set(filters.vocabulary_id);
+
       return children.filter((child) => {
         if (
-          filters.concept_class_id?.length &&
-          !filters.concept_class_id.includes(child.concept_class_id[0])
+          conceptClassIds.size &&
+          !conceptClassIds.has(child.concept_class_id[0])
+        ) {
+          return false;
+        }
+        if (domainIds.size && !domainIds.has(child.domain_id[0])) {
+          return false;
+        }
+        if (
+          invalidReasons.size &&
+          !invalidReasons.has(child.invalid_reason[0])
         ) {
           return false;
         }
         if (
-          filters.domain_id?.length &&
-          !filters.domain_id.includes(child.domain_id[0])
+          standardConcepts.size &&
+          !standardConcepts.has(child.standard_concept[0])
         ) {
           return false;
         }
-        if (
-          filters.invalid_reason?.length &&
-          !filters.invalid_reason.includes(child.invalid_reason[0])
-        ) {
-          return false;
-        }
-        if (
-          filters.standard_concept?.length &&
-          !filters.standard_concept.includes(child.standard_concept[0])
-        ) {
-          return false;
-        }
-        if (
-          filters.vocabulary_id?.length &&
-          !filters.vocabulary_id.includes(child.vocabulary_id[0])
-        ) {
+        if (vocabularyIds.size && !vocabularyIds.has(child.vocabulary_id[0])) {
           return false;
         }
         return true;
@@ -200,134 +200,15 @@ export default function ConceptTable(props: Readonly<ConceptTableProps>) {
     [applyFilterForConceptsWithChildren, renderTagsForField],
   );
 
-  const columns: TableProps<ConceptRow>["columns"] = useMemo(
-    () => [
-      {
-        title: "",
-        dataIndex: "",
-        key: "concept_id",
-        width: 1,
-      },
-      {
-        title: "id",
-        dataIndex: "concept_id",
-        key: "concept_id",
-        align: "left",
-        minWidth: 105,
-        render: (value, record) => (
-          <div style={{ textAlign: "left" }}>
-            {record.concept_id ? value : record.children?.length + " concepts"}
-          </div>
-        ),
-      },
-      {
-        title: "code",
-        dataIndex: "concept_code",
-        key: "concept_code",
-        minWidth: 120,
-        responsive: full ? ["md"] : ["xxl"],
-      },
-      {
-        title: "name",
-        dataIndex: "concept_name",
-        key: "concept_name",
-        minWidth: 150,
-        render: (value, row, index) => {
-          if (row.children) {
-            return (
-              <Link
-                key={index + value}
-                to="/"
-                style={{ color: "#01452c", pointerEvents: "none" }}
-              >
-                {value}
-              </Link>
-            );
-          } else {
-            return (
-              <Link
-                key={index + value}
-                to={`/concepts/${row.concept_id}`}
-                style={{ color: "#01452c" }}
-              >
-                {value}
-              </Link>
-            );
-          }
-        },
-        sorter: (a, b) => a.concept_name.localeCompare(b.concept_name),
-      },
-      {
-        title: "class",
-        dataIndex: "concept_class_id",
-        key: "concept_class_id",
-        filteredValue: filteredInfo.concept_class_id,
-        filters: filterOptions.conceptClass,
-        responsive: full ? ["md"] : ["xxl"],
-        render: (_, row) => renderCellValue(row, "concept_class_id"),
-        onFilter: (value, record) =>
-          record["concept_class_id"].toString().includes(value.toString()),
-      },
-      {
-        title: "domain",
-        dataIndex: "domain_id",
-        key: "domain_id",
-        filteredValue: filteredInfo.domain_id,
-        filters: filterOptions.domain,
-        responsive: full ? ["md"] : ["xxl"],
-        onFilter: (value, record) => record.domain_id.includes(value as string),
-        render: (_, row) => renderCellValue(row, "domain_id"),
-      },
-      {
-        title: "validity",
-        dataIndex: "invalid_reason",
-        key: "invalid_reason",
-        filteredValue: filteredInfo.invalid_reason,
-        filters: filterOptions.validity,
-        responsive: full ? ["lg"] : ["xxl"],
-        onFilter: (value, record) =>
-          record.invalid_reason.includes(value as string),
-        render: (_, row) => renderCellValue(row, "invalid_reason"),
-      },
-      {
-        title: "concept",
-        dataIndex: "standard_concept",
-        key: "standard_concept",
-        responsive: ["md"],
-        filteredValue: filteredInfo.standard_concept,
-        filters: filterOptions.standard,
-        onFilter: (value, record) =>
-          record.standard_concept.includes(value as string),
-        render: (_, row) => renderCellValue(row, "standard_concept"),
-      },
-      {
-        title: "vocabulary",
-        dataIndex: "vocabulary_id",
-        key: "vocabulary_id",
-        responsive: ["sm"],
-        filteredValue: filteredInfo.vocabulary_id,
-        filters: filterOptions.vocabulary,
-        onFilter: (value, record) =>
-          record.vocabulary_id.includes(value as string),
-        render: (_, row) => renderCellValue(row, "vocabulary_id"),
-      },
-      {
-        title: "score",
-        dataIndex: "score",
-        key: "score",
-        render: (value) => Math.round((value + Number.EPSILON) * 1000) / 1000,
-        sorter: (a, b) => a.score - b.score,
-        responsive: full ? ["xxl"] : ["md"],
-      },
-      {
-        title: "records",
-        dataIndex: "record_count",
-        key: "record_count",
-        render: (value: number | undefined) => value?.toLocaleString() ?? "",
-        sorter: (a, b) => (a.record_count ?? 0) - (b.record_count ?? 0),
-        responsive: full ? ["md"] : ["xxl"],
-      },
-    ],
+  const columns = useMemo(
+    () =>
+      buildConceptTableColumns({
+        full,
+        showFilters: true,
+        filteredInfo,
+        filterOptions,
+        renderCellValue,
+      }),
     [full, filteredInfo, filterOptions, renderCellValue],
   );
 
@@ -375,32 +256,30 @@ export default function ConceptTable(props: Readonly<ConceptTableProps>) {
   }, []);
 
   const doSearch = useCallback(
-    (q: string) => {
+    async (q: string) => {
       setLoading(true);
-      search(q)
-        .then((r) => {
-          setLoading(false);
-          setCurrentPage(1);
-          setFilterOptions({
-            conceptClass: getFilterSelector("concept_class_id", r),
-            domain: getFilterSelector("domain_id", r),
-            validity: getFilterSelector("invalid_reason", r),
-            standard: getFilterSelector("standard_concept", r),
-            vocabulary: getFilterSelector("vocabulary_id", r),
-          });
-          setSelected(r);
-          setOriginalData(r);
-        })
-        .catch(() => {
-          openNotification();
-          setLoading(false);
+      try {
+        const results = await search(q);
+        setFilterOptions({
+          conceptClass: getFilterSelector("concept_class_id", results),
+          domain: getFilterSelector("domain_id", results),
+          validity: getFilterSelector("invalid_reason", results),
+          standard: getFilterSelector("standard_concept", results),
+          vocabulary: getFilterSelector("vocabulary_id", results),
         });
+        setSelected(results);
+        setOriginalData(results);
+      } catch {
+        openNotification();
+      } finally {
+        setLoading(false);
+      }
     },
     [getFilterSelector, openNotification, setFilterOptions],
   );
 
   useEffect(() => {
-    doSearch(searchTerm);
+    void doSearch(searchTerm);
   }, [searchTerm, doSearch]);
 
   useEffect(() => {

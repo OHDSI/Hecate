@@ -49,12 +49,20 @@ function HecateHeader() {
     {
       key: "3",
       label: (
-        <div
+        <button
+          type="button"
           onClick={() => setModalOpen(true)}
-          style={{ fontSize: "large", fontFamily: "GFS Neohellenic" }}
+          style={{
+            background: "none",
+            border: 0,
+            cursor: "pointer",
+            fontFamily: "GFS Neohellenic",
+            fontSize: "large",
+            padding: 0,
+          }}
         >
           About
-        </div>
+        </button>
       ),
       icon: <InfoOutlined style={{ fontSize: "large" }} />,
     },
@@ -102,18 +110,28 @@ function HecateHeader() {
           have come to expect.
           <br />
         </div>*/}
-        <img
+        <button
+          type="button"
+          aria-label="Open information about Hecate"
           onClick={() => setModalOpen(true)}
-          src={hecateLogo}
-          alt="Hecate logo"
           style={{
-            mixBlendMode: "multiply",
-            height: "100%",
-            opacity: 0.8,
-            paddingRight: "0.3em",
+            background: "none",
+            border: 0,
             cursor: "pointer",
+            height: "100%",
+            paddingRight: "0.3em",
           }}
-        />
+        >
+          <img
+            src={hecateLogo}
+            alt=""
+            style={{
+              height: "100%",
+              mixBlendMode: "multiply",
+              opacity: 0.8,
+            }}
+          />
+        </button>
       </div>
       <Modal
         style={{ fontFamily: "GFS Neohellenic", color: "#01452c" }}
@@ -157,7 +175,7 @@ function HecateHeader() {
             target={"_blank"}
             rel="noopener noreferrer"
           >
-            here
+            View OpenAPI specifications
           </a>
           <br />
           Source code is available on GitHub{" "}
@@ -166,7 +184,7 @@ function HecateHeader() {
             target={"_blank"}
             rel="noopener noreferrer"
           >
-            here
+            View Hecate source code on GitHub
           </a>
           <br />
           This public instance is provided for the OHDSI community by the

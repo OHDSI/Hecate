@@ -78,7 +78,11 @@ function App() {
           }}
         >
           {searchTerm ? (
-            <ConceptTable searchTerm={searchTerm} full={true} />
+            <ConceptTable
+              key={searchTerm}
+              searchTerm={searchTerm}
+              full={true}
+            />
           ) : (
             <img
               src={hecateLogo}

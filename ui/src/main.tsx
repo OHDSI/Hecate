@@ -5,23 +5,28 @@ import { ConfigProvider, Layout } from "antd";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ConceptView from "./components/ConceptView.tsx";
 import ConceptSets from "./components/ConceptSets.tsx";
+import RouteErrorBoundary from "./components/RouteErrorBoundary.tsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
+    errorElement: <RouteErrorBoundary />,
   },
   {
     path: "/search",
     element: <App />,
+    errorElement: <RouteErrorBoundary />,
   },
   {
     path: "/concepts/:id",
     element: <ConceptView />,
+    errorElement: <RouteErrorBoundary />,
   },
   {
     path: "/concept-sets",
     element: <ConceptSets />,
+    errorElement: <RouteErrorBoundary />,
   },
 ]);
 

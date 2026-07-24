@@ -85,7 +85,11 @@ function ConceptView() {
       key: "2",
       label: "Similar",
       children: concept ? (
-        <ConceptTable searchTerm={concept.concept_name} full={false} />
+        <ConceptTable
+          key={concept.concept_name}
+          searchTerm={concept.concept_name}
+          full={false}
+        />
       ) : (
         <div>Loading ... </div>
       ),
@@ -103,7 +107,11 @@ function ConceptView() {
       key: "4",
       label: "Descendents",
       children: concept ? (
-        <ConceptHierarchyTable conceptId={conceptId} full={true} />
+        <ConceptHierarchyTable
+          key={conceptId}
+          conceptId={conceptId}
+          full={true}
+        />
       ) : (
         <div>Loading ... </div>
       ),

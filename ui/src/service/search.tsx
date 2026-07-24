@@ -48,11 +48,14 @@ export const search = async (q: string): Promise<ConceptRow[]> => {
   return client
     .get<SearchResponse[]>(`/search?q=${encodedQuery}&limit=250`)
     .then((resp) => {
-      return resp.data
-        .filter((resp) => resp.concepts)
-        .map((resp) => {
-          if (resp.concepts.length === 1) {
-            return {
+      return resp.data.flatMap<ConceptRow>((resp) => {
+        if (!resp.concepts) {
+          return [];
+        }
+
+        if (resp.concepts.length === 1) {
+          return [
+            {
               concept_id: resp.concepts[0].concept_id,
               concept_name: resp.concepts[0].concept_name,
               domain_id: [resp.concepts[0].domain_id],
@@ -72,28 +75,30 @@ export const search = async (q: string): Promise<ConceptRow[]> => {
               score: resp.score,
               record_count: resp.concepts[0].record_count,
               children: undefined,
-            };
-          } else {
-            const children = resp.concepts.map((c) => {
-              return {
-                concept_id: c.concept_id,
-                concept_name: c.concept_name,
-                domain_id: [c.domain_id],
-                vocabulary_id: [c.vocabulary_id],
-                concept_class_id: [c.concept_class_id],
-                concept_code: c.concept_code,
-                standard_concept: [
-                  expandStandardConceptAbbreviation(c.standard_concept),
-                ],
-                invalid_reason: [
-                  expandInvalidReasonAbbreviation(c.invalid_reason),
-                ],
-                score: resp.score,
-                record_count: c.record_count,
-                children: undefined,
-              };
-            });
+            },
+          ];
+        } else {
+          const children = resp.concepts.map((c) => {
             return {
+              concept_id: c.concept_id,
+              concept_name: c.concept_name,
+              domain_id: [c.domain_id],
+              vocabulary_id: [c.vocabulary_id],
+              concept_class_id: [c.concept_class_id],
+              concept_code: c.concept_code,
+              standard_concept: [
+                expandStandardConceptAbbreviation(c.standard_concept),
+              ],
+              invalid_reason: [
+                expandInvalidReasonAbbreviation(c.invalid_reason),
+              ],
+              score: resp.score,
+              record_count: c.record_count,
+              children: undefined,
+            };
+          });
+          return [
+            {
               concept_name: resp.concept_name,
               domain_id: [...new Set(children.map((c) => c.domain_id[0]))],
               vocabulary_id: [
@@ -114,9 +119,10 @@ export const search = async (q: string): Promise<ConceptRow[]> => {
                 0,
               ),
               children: children,
-            };
-          }
-        });
+            },
+          ];
+        }
+      });
     })
     .catch((err) => {
       throw err;

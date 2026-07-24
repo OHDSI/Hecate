@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 import { Button, Table, TableProps, Tag } from "antd";
-import { Link } from "react-router-dom";
 import { ConceptRow } from "../@types/data-source";
 import "../App.css";
+import { buildConceptTableColumns } from "./conceptTableColumns";
 
 type OnChange = NonNullable<TableProps<ConceptRow>["onChange"]>;
 type Filters = Parameters<OnChange>[1];
@@ -25,18 +25,19 @@ interface ConceptTableCoreProps {
   loading?: boolean;
   full?: boolean;
   showFilters?: boolean;
-  hiddenColumns?: string[];
+  hiddenColumns?: readonly string[];
   initialFilters?: Filters;
 }
 
 type FilterField = keyof FilterState;
+const EMPTY_HIDDEN_COLUMNS: readonly string[] = [];
 
 const ConceptTableCore: React.FC<ConceptTableCoreProps> = ({
   data,
   loading = false,
   full = true,
   showFilters = false,
-  hiddenColumns = [],
+  hiddenColumns = EMPTY_HIDDEN_COLUMNS,
   initialFilters,
 }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -125,167 +126,29 @@ const ConceptTableCore: React.FC<ConceptTableCoreProps> = ({
     };
   }, [data]);
 
-  const columns: TableProps<ConceptRow>["columns"] = useMemo(
+  const hiddenColumnSet = useMemo(
+    () => new Set(hiddenColumns),
+    [hiddenColumns],
+  );
+
+  const columns = useMemo(
     () =>
-      [
-        {
-          title: "",
-          dataIndex: "",
-          key: "concept_id",
-          width: 1,
-        },
-        {
-          title: "id",
-          dataIndex: "concept_id",
-          key: "concept_id",
-          align: "left" as const,
-          minWidth: 105,
-          render: (value: number, record: ConceptRow) => (
-            <div style={{ textAlign: "left" }}>
-              {record.concept_id
-                ? value
-                : record.children?.length + " concepts"}
-            </div>
-          ),
-        },
-        {
-          title: "code",
-          dataIndex: "concept_code",
-          key: "concept_code",
-          minWidth: 120,
-          responsive: full ? ["md" as const] : ["xxl" as const],
-        },
-        {
-          title: "name",
-          dataIndex: "concept_name",
-          key: "concept_name",
-          minWidth: 150,
-          render: (value: string, row: ConceptRow, index: number) => {
-            if (row.children) {
-              return (
-                <Link
-                  key={index + value}
-                  to="/"
-                  style={{ color: "#01452c", pointerEvents: "none" }}
-                >
-                  {value}
-                </Link>
-              );
-            } else {
-              return (
-                <Link
-                  key={index + value}
-                  to={`/concepts/${row.concept_id}`}
-                  style={{ color: "#01452c" }}
-                >
-                  {value}
-                </Link>
-              );
-            }
-          },
-          sorter: (a: ConceptRow, b: ConceptRow) =>
-            a.concept_name.localeCompare(b.concept_name),
-        },
-        {
-          title: "class",
-          dataIndex: "concept_class_id",
-          key: "concept_class_id",
-          filteredValue: showFilters
-            ? filteredInfo.concept_class_id
-            : undefined,
-          filters: showFilters ? filterOptions.conceptClass : undefined,
-          responsive: full ? ["md" as const] : ["xxl" as const],
-          render: (_: string[], row: ConceptRow) =>
-            renderCellValue(row, "concept_class_id"),
-          onFilter: showFilters
-            ? (value: React.Key | boolean, record: ConceptRow) =>
-                record["concept_class_id"].toString().includes(value.toString())
-            : undefined,
-        },
-        {
-          title: "domain",
-          dataIndex: "domain_id",
-          key: "domain_id",
-          filteredValue: showFilters ? filteredInfo.domain_id : undefined,
-          filters: showFilters ? filterOptions.domain : undefined,
-          responsive: full ? ["md" as const] : ["xxl" as const],
-          onFilter: showFilters
-            ? (value: React.Key | boolean, record: ConceptRow) =>
-                record.domain_id.includes(value as string)
-            : undefined,
-          render: (_: string[], row: ConceptRow) =>
-            renderCellValue(row, "domain_id"),
-        },
-        {
-          title: "validity",
-          dataIndex: "invalid_reason",
-          key: "invalid_reason",
-          filteredValue: showFilters ? filteredInfo.invalid_reason : undefined,
-          filters: showFilters ? filterOptions.validity : undefined,
-          responsive: full ? ["lg" as const] : ["xxl" as const],
-          onFilter: showFilters
-            ? (value: React.Key | boolean, record: ConceptRow) =>
-                record.invalid_reason.includes(value as string)
-            : undefined,
-          render: (_: string[], row: ConceptRow) =>
-            renderCellValue(row, "invalid_reason"),
-        },
-        {
-          title: "concept",
-          dataIndex: "standard_concept",
-          key: "standard_concept",
-          responsive: ["md" as const],
-          filteredValue: showFilters
-            ? filteredInfo.standard_concept
-            : undefined,
-          filters: showFilters ? filterOptions.standard : undefined,
-          onFilter: showFilters
-            ? (value: React.Key | boolean, record: ConceptRow) =>
-                record.standard_concept.includes(value as string)
-            : undefined,
-          render: (_: string[], row: ConceptRow) =>
-            renderCellValue(row, "standard_concept"),
-        },
-        {
-          title: "vocabulary",
-          dataIndex: "vocabulary_id",
-          key: "vocabulary_id",
-          responsive: ["sm" as const],
-          filteredValue: showFilters ? filteredInfo.vocabulary_id : undefined,
-          filters: showFilters ? filterOptions.vocabulary : undefined,
-          onFilter: showFilters
-            ? (value: React.Key | boolean, record: ConceptRow) =>
-                record.vocabulary_id.includes(value as string)
-            : undefined,
-          render: (_: string[], row: ConceptRow) =>
-            renderCellValue(row, "vocabulary_id"),
-        },
-        {
-          title: "score",
-          dataIndex: "score",
-          key: "score",
-          render: (value: number) =>
-            Math.round((value + Number.EPSILON) * 1000) / 1000,
-          sorter: (a: ConceptRow, b: ConceptRow) => a.score - b.score,
-          responsive: full ? ["md" as const] : ["xxl" as const],
-        },
-        {
-          title: "records",
-          dataIndex: "record_count",
-          key: "record_count",
-          render: (value: number | undefined) => value?.toLocaleString() ?? "",
-          sorter: (a: ConceptRow, b: ConceptRow) =>
-            (a.record_count ?? 0) - (b.record_count ?? 0),
-          responsive: full ? ["md" as const] : ["xxl" as const],
-        },
-      ].filter((column) => !hiddenColumns.includes(column.key as string)),
+      buildConceptTableColumns({
+        full,
+        showFilters,
+        filteredInfo,
+        filterOptions,
+        renderCellValue,
+      }).filter(
+        (column) => !column || !hiddenColumnSet.has(column.key as string),
+      ),
     [
       full,
       showFilters,
       filteredInfo,
       filterOptions,
       renderCellValue,
-      hiddenColumns,
+      hiddenColumnSet,
     ],
   );
 
