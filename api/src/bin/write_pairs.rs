@@ -35,7 +35,7 @@ async fn main() {
     dotenv().ok();
 
     let qdrant_uri = std::env::var("QDRANT_URI").expect("QDRANT_URI must be set");
-    info!("Connecting to Qdrant at {}", &qdrant_uri);
+    info!("Connecting to Qdrant at {}", qdrant_uri);
     let client = Qdrant::from_url(&qdrant_uri)
         .build()
         .expect("Failed to build Qdrant client");
@@ -79,7 +79,7 @@ async fn main() {
     }
 
     let output = std::env::args().nth(1).unwrap_or("all_pairs.txt".into());
-    info!("Writing {} entries to {}", pairs.len(), &output);
+    info!("Writing {} entries to {}", pairs.len(), output);
     let json = serde_json::to_string(&pairs).expect("Failed to serialize pairs to JSON");
     fs::write(&output, json).expect("Failed to write output file");
     info!("Done.");

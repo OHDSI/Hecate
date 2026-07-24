@@ -312,7 +312,7 @@ async fn search(
     let client = &state.qdrant_client;
     let input = parameters.q.trim();
     let lowercase_input = input.to_lowercase();
-    info!("Received search request for {:?}", &input);
+    info!("Received search request for {:?}", input);
     let opt_existing = if collection_name == CONCEPT_COLLECTION {
         state.concept_index.get(lowercase_input.as_str())
     } else {
@@ -431,7 +431,7 @@ async fn get_concept_by_id(
     state: Data<StateWrapper>,
 ) -> Result<HttpResponse, Error> {
     let id = path.into_inner();
-    info!("Get concept {}", &id);
+    info!("Get concept {}", id);
     let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
     let mut concept = db::get_concept_by_id(&pg_client, id).await?;
     concept.record_count = state.concept_record_counts.get(&id).copied().unwrap_or(0);
@@ -444,7 +444,7 @@ async fn get_concept_relationships(
     state: Data<StateWrapper>,
 ) -> Result<HttpResponse, Error> {
     let id = path.into_inner();
-    info!("Get concept {} relationships", &id);
+    info!("Get concept {} relationships", id);
     let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
     let mut concepts = db::get_concept_relationships(&pg_client, id).await?;
 
@@ -466,7 +466,7 @@ async fn get_concept_phoebe(
     state: Data<StateWrapper>,
 ) -> Result<HttpResponse, Error> {
     let id = path.into_inner();
-    info!("Get concept {} phoebe", &id);
+    info!("Get concept {} phoebe", id);
     let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
     let mut concepts = db::get_concept_phoebe(&pg_client, id).await?;
 
@@ -534,7 +534,7 @@ async fn get_concept_definition(
     state: Data<StateWrapper>,
 ) -> Result<HttpResponse, Error> {
     let id = path.into_inner();
-    info!("Get concept {} definition", &id);
+    info!("Get concept {} definition", id);
     let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
     let concept = db::get_concept_by_id(&pg_client, id).await?;
     let def = match get_umls_definition_from_nlm(&concept.concept_name).await {
@@ -557,7 +557,7 @@ async fn get_concept_expand(
     let id = path.into_inner();
     info!(
         "Get concept {} expand with params: childlevels={:?}, parentlevels={:?}",
-        &id, params.childlevels, params.parentlevels
+        id, params.childlevels, params.parentlevels
     );
 
     let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
