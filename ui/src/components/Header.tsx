@@ -94,7 +94,7 @@ function HecateHeader() {
             </Link>
           </div>
         </Dropdown>
-        {/*<div
+        <div
           style={{
             display: "flex",
             alignItems: "center",
@@ -106,10 +106,10 @@ function HecateHeader() {
             lineHeight: 1.3,
           }}
         >
-          Hecate is currently being updated and may not work as smoothly as you
+          The vocab used by Hecate is currently being updated to the latest version, the app may not work as smoothly as you
           have come to expect.
           <br />
-        </div>*/}
+        </div>
         <button
           type="button"
           aria-label="Open information about Hecate"
@@ -160,7 +160,7 @@ function HecateHeader() {
             Suggestions to improve the experience of using Hecate are always
             welcome.
             <br />
-            The current vocabulary is the 27-FEB-26 release.
+            The current vocabulary is the 29-AUG-26 release.
           </div>
         </div>
         <img
