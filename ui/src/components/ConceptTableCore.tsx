@@ -1,8 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
-import { Button, Table, TableProps, Tag } from "antd";
+import { Table, TableProps, Tag } from "antd";
 import { ConceptRow } from "../@types/data-source";
 import "../App.css";
 import { buildConceptTableColumns } from "./conceptTableColumns";
+import ConceptFilterSummary from "./ConceptFilterSummary";
 
 type OnChange = NonNullable<TableProps<ConceptRow>["onChange"]>;
 type Filters = Parameters<OnChange>[1];
@@ -156,42 +157,11 @@ const ConceptTableCore: React.FC<ConceptTableCoreProps> = ({
     showFilters &&
     Object.values(filteredInfo).some((filter) => filter && filter.length > 0);
 
-  const renderFilterSection = () => {
-    if (!hasActiveFilters) return null;
-
-    const filterLabels = {
-      concept_class_id: "class",
-      domain_id: "domain",
-      invalid_reason: "validity",
-      standard_concept: "standard concept",
-      vocabulary_id: "vocabulary",
-    };
-
-    return (
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        <div style={{ marginRight: "auto", textAlign: "left" }}>
-          <div>Applied filters:</div>
-          {Object.entries(filteredInfo).map(([key, values]) => {
-            if (!values || values.length === 0) return null;
-            const label = filterLabels[key as keyof typeof filterLabels];
-            return (
-              <div key={key}>
-                {label}:{" "}
-                {values.map((value) => (
-                  <Tag key={value.toString()}>{value.toString()}</Tag>
-                ))}
-              </div>
-            );
-          })}
-        </div>
-        <Button onClick={clearFilters}>clear filters</Button>
-      </div>
-    );
-  };
-
   return (
     <div>
-      {renderFilterSection()}
+      {hasActiveFilters && (
+        <ConceptFilterSummary filters={filteredInfo} onClear={clearFilters} />
+      )}
       <Table
         rowKey={(record) => record.concept_id + record.concept_name}
         style={{ paddingTop: "1em", fontSize: "8px" }}
