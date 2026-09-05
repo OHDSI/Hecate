@@ -94,22 +94,22 @@ function HecateHeader() {
             </Link>
           </div>
         </Dropdown>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            marginRight: "auto",
-            padding: "0 1em",
-            fontSize: 12,
-            color: "black",
-            opacity: 0.85,
-            lineHeight: 1.3,
-          }}
-        >
-          The vocab used by Hecate is currently being updated to the latest version, the app may not work as smoothly as you
-          have come to expect.
-          <br />
-        </div>
+{/*        <div*/}
+{/*          style={{*/}
+{/*            display: "flex",*/}
+{/*            alignItems: "center",*/}
+{/*            marginRight: "auto",*/}
+{/*            padding: "0 1em",*/}
+{/*            fontSize: 12,*/}
+{/*            color: "black",*/}
+{/*            opacity: 0.85,*/}
+{/*            lineHeight: 1.3,*/}
+{/*          }}*/}
+{/*        >*/}
+{/*          The vocab used by Hecate is currently being updated to the latest version, the app may not work as smoothly as you*/}
+{/*          have come to expect.*/}
+{/*          <br />*/}
+{/*        </div>*/}
         <button
           type="button"
           aria-label="Open information about Hecate"
