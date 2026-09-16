@@ -18,7 +18,7 @@ use qdrant_client::qdrant::{
 };
 use qdrant_client::{Qdrant, qdrant};
 use serde::Deserialize;
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap, HashSet};
 
 pub const CONCEPT_COLLECTION: &str = "meddra";
 pub const SYNONYMS_COLLECTION: &str = "synonyms";
@@ -85,13 +85,65 @@ struct ExpandParams {
     parentlevels: Option<i32>,
 }
 
-async fn process_search_results(
+/// Preserve insertion order and the first result's score while indexing current names.
+/// Several groups can acquire the same name when appending a standard concept.
+#[derive(Default)]
+struct SearchResultGroups {
+    results: Vec<SearchResponse>,
+    positions: HashMap<String, BTreeSet<usize>>,
+}
+
+impl SearchResultGroups {
+    fn push(&mut self, mut incoming: SearchResponse) {
+        if let Some(positions) = self.positions.remove(&incoming.concept_name_lower) {
+            // Visit matching groups in insertion order, just like the original scan.
+            // append_concepts drains the incoming concepts into the first match.
+            for position in positions {
+                let existing = &mut self.results[position];
+                existing.append_concepts(&mut incoming.concepts);
+                self.positions
+                    .entry(existing.concept_name_lower.clone())
+                    .or_default()
+                    .insert(position);
+            }
+        } else {
+            self.positions
+                .entry(incoming.concept_name_lower.clone())
+                .or_default()
+                .insert(self.results.len());
+            self.results.push(incoming);
+        }
+    }
+
+    fn into_results(self) -> Vec<SearchResponse> {
+        self.results
+    }
+}
+
+fn non_standard_source_ids(main: &[SearchResponse], synonyms: &[SearchResponse]) -> Vec<i32> {
+    main.iter()
+        .chain(synonyms)
+        .flat_map(|result| &result.concepts)
+        .filter(|concept| {
+            !concept
+                .standard_concept
+                .as_deref()
+                .is_some_and(|sc| sc.eq_ignore_ascii_case("S"))
+        })
+        .map(|concept| concept.concept_id)
+        .collect::<HashSet<_>>()
+        .into_iter()
+        .collect()
+}
+
+fn process_search_results(
     search_results: Vec<SearchResponse>,
     concept_map: &mut HashMap<i32, (Concept, f64)>,
     parameters: &Parameters,
-    state: &Data<StateWrapper>,
+    record_counts: &HashMap<i32, i64>,
+    standard_mappings: &HashMap<i32, Vec<Concept>>,
     limit: usize,
-) -> Result<(), Error> {
+) {
     // First pass: collect all concepts with their best scores
     let mut all_concepts: HashMap<i32, (Concept, f64)> = HashMap::new();
 
@@ -102,11 +154,8 @@ async fn process_search_results(
                 .as_ref()
                 .is_some_and(|sc| sc.eq_ignore_ascii_case("S"))
             {
-                let filtered_concepts = filter_and_enrich_concepts(
-                    vec![concept.clone()],
-                    parameters,
-                    &state.concept_record_counts,
-                );
+                let filtered_concepts =
+                    filter_and_enrich_concepts(vec![concept.clone()], parameters, record_counts);
                 if !filtered_concepts.is_empty() {
                     let filtered_concept = &filtered_concepts[0];
                     let score = sr.score.unwrap_or(0.0);
@@ -129,13 +178,12 @@ async fn process_search_results(
                     }
                 }
             } else {
-                let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
-                let standard_concepts = db::map_to_standard(&pg_client, concept.concept_id).await?;
-                let filtered_standard_concepts = filter_and_enrich_concepts(
-                    standard_concepts,
-                    parameters,
-                    &state.concept_record_counts,
-                );
+                let standard_concepts = standard_mappings
+                    .get(&concept.concept_id)
+                    .cloned()
+                    .unwrap_or_default();
+                let filtered_standard_concepts =
+                    filter_and_enrich_concepts(standard_concepts, parameters, record_counts);
                 for std_concept in filtered_standard_concepts {
                     let score = sr.score.unwrap_or(0.0);
 
@@ -174,8 +222,6 @@ async fn process_search_results(
         concepts_vec.truncate(limit);
         *concept_map = concepts_vec.into_iter().collect();
     }
-
-    Ok(())
 }
 
 #[get("/api/search_standard")]
@@ -212,44 +258,39 @@ async fn search_standard_uncached(
             exclude_vocab_str
         ));
     }
-    let resp = search(
-        Query::from_query(&query_string)?,
-        state.clone(),
-        CONCEPT_COLLECTION,
-    )
-    .await;
+    let (main_search_results, synonyms_search_results) = tokio::try_join!(
+        search(
+            Query::from_query(&query_string)?,
+            state.clone(),
+            CONCEPT_COLLECTION,
+        ),
+        search(
+            Query::from_query(&query_string)?,
+            state.clone(),
+            SYNONYMS_COLLECTION,
+        ),
+    )?;
 
-    // Additional search call with synonyms collection
-    let synonyms_resp = search(
-        Query::from_query(&query_string)?,
-        state.clone(),
-        SYNONYMS_COLLECTION,
-    )
-    .await;
+    // Resolve each non-standard source once across both collections.
+    let source_ids = non_standard_source_ids(&main_search_results, &synonyms_search_results);
+    let standard_mappings = if source_ids.is_empty() {
+        HashMap::new()
+    } else {
+        let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
+        db::map_to_standard_batch(&pg_client, &source_ids).await?
+    };
 
     let mut concept_map: HashMap<i32, (Concept, f64)> = HashMap::new();
-    let main_search_results = resp?;
-    let synonyms_search_results = synonyms_resp?;
-
-    // Process main search results
-    process_search_results(
-        main_search_results,
-        &mut concept_map,
-        &parameters,
-        &state,
-        limit,
-    )
-    .await?;
-
-    // Process synonyms search results
-    process_search_results(
-        synonyms_search_results,
-        &mut concept_map,
-        &parameters,
-        &state,
-        limit,
-    )
-    .await?;
+    for results in [main_search_results, synonyms_search_results] {
+        process_search_results(
+            results,
+            &mut concept_map,
+            &parameters,
+            &state.concept_record_counts,
+            &standard_mappings,
+            limit,
+        );
+    }
 
     let mut grouped_concepts: HashMap<String, (f64, Vec<Concept>)> = HashMap::new();
 
@@ -318,15 +359,17 @@ async fn search(
     } else {
         None
     };
-    let mut to_return: Vec<SearchResponse> = Vec::new();
     let mut ids: Vec<String> = Vec::new();
     if let Some(existing) = opt_existing {
         existing.iter().for_each(|x| ids.push(x.to_string()));
     } else {
-        let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
-        let concepts = match input.parse::<i32>() {
-            Ok(id) => db::get_concept_name_by_number(&pg_client, id).await?,
-            Err(_) => db::get_concept_name_by_string(&pg_client, input).await?,
+        // Return the connection before waiting on Qdrant or embedding generation.
+        let concepts = {
+            let pg_client = state.pg_pool.get().await.map_err(PgError::PoolError)?;
+            match input.parse::<i32>() {
+                Ok(id) => db::get_concept_name_by_number(&pg_client, id).await?,
+                Err(_) => db::get_concept_name_by_string(&pg_client, input).await?,
+            }
         };
 
         if !concepts.is_empty() {
@@ -372,6 +415,7 @@ async fn search(
             )
             .await
             .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+            let mut groups = SearchResultGroups::default();
             for sp in recommendations {
                 let mut concept: SearchResponse = SearchResponse::from(sp);
                 // Apply filters after retrieval due to performance issues with filtering in qdrant
@@ -383,24 +427,9 @@ async fn search(
                 if concept.concepts.is_empty() {
                     continue;
                 }
-                // case desensification
-                let mut contains_case_insensitive_exact_match = false;
-                to_return = to_return
-                    .into_iter()
-                    .map(|mut every| {
-                        if every.concept_name_lower.eq(&concept.concept_name_lower) {
-                            every.append_concepts(&mut concept.concepts);
-                            contains_case_insensitive_exact_match = true;
-                            every
-                        } else {
-                            every
-                        }
-                    })
-                    .collect();
-                if !contains_case_insensitive_exact_match {
-                    to_return.push(concept);
-                }
+                groups.push(concept);
             }
+            let mut to_return = groups.into_results();
             // Sort by score descending and apply limit
             to_return.sort_by(|a, b| {
                 b.score
@@ -416,7 +445,6 @@ async fn search(
     let points: Vec<PointId> = ids.iter().map(|id| PointId::from(id.as_str())).collect();
     create_response_from_vector_db_ids(
         client,
-        to_return,
         points,
         &parameters,
         collection_name,
@@ -577,7 +605,6 @@ async fn get_concept_expand(
 
 async fn create_response_from_vector_db_ids(
     client: &Qdrant,
-    mut to_return: Vec<SearchResponse>,
     points: Vec<PointId>,
     parameters: &Parameters,
     collection_name: &str,
@@ -637,6 +664,8 @@ async fn create_response_from_vector_db_ids(
         })
         .collect();
 
+    let mut groups = SearchResultGroups::default();
+
     // Add search_result items first (these are the exact matches)
     for retrieved_point in search_result {
         let mut concept = SearchResponse::from(retrieved_point);
@@ -644,22 +673,7 @@ async fn create_response_from_vector_db_ids(
         if concept.concepts.is_empty() {
             continue;
         }
-        let mut found_match = false;
-        to_return = to_return
-            .into_iter()
-            .map(|mut every| {
-                if every.concept_name_lower.eq(&concept.concept_name_lower) {
-                    every.append_concepts(&mut concept.concepts);
-                    found_match = true;
-                    every
-                } else {
-                    every
-                }
-            })
-            .collect();
-        if !found_match {
-            to_return.push(concept);
-        }
+        groups.push(concept);
     }
 
     // Add neighbours, but exclude items that were already in search_result
@@ -677,24 +691,10 @@ async fn create_response_from_vector_db_ids(
         if concept.concepts.is_empty() {
             continue;
         }
-        let mut found_match = false;
-        to_return = to_return
-            .into_iter()
-            .map(|mut every| {
-                if every.concept_name_lower.eq(&concept.concept_name_lower) {
-                    every.append_concepts(&mut concept.concepts);
-                    found_match = true;
-                    every
-                } else {
-                    every
-                }
-            })
-            .collect();
-        if !found_match {
-            to_return.push(concept);
-        }
+        groups.push(concept);
     }
 
+    let mut to_return = groups.into_results();
     // Sort by score descending and apply limit
     to_return.sort_by(|a, b| {
         b.score
@@ -857,4 +857,192 @@ async fn analyze_concept_set(
     });
 
     Ok(HttpResponse::Ok().json(analysis_result.to_json()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn concept(id: i32, standard: Option<&str>, domain: &str) -> Concept {
+        Concept {
+            concept_id: id,
+            concept_name: format!("Concept {id}"),
+            domain_id: domain.into(),
+            vocabulary_id: "SNOMED".into(),
+            concept_class_id: "Clinical Finding".into(),
+            standard_concept: standard.map(str::to_string),
+            concept_code: id.to_string(),
+            invalid_reason: None,
+            valid_start_date: None,
+            valid_end_date: None,
+            record_count: 0,
+        }
+    }
+
+    fn result(score: f64, concepts: Vec<Concept>) -> SearchResponse {
+        SearchResponse {
+            concept_name: "result".into(),
+            concept_name_lower: "result".into(),
+            score: Some(score),
+            concepts,
+        }
+    }
+
+    fn named_result(name: &str, score: f64, concepts: Vec<Concept>) -> SearchResponse {
+        SearchResponse {
+            concept_name: name.into(),
+            concept_name_lower: name.to_lowercase(),
+            score: Some(score),
+            concepts,
+        }
+    }
+
+    #[test]
+    fn indexed_grouping_preserves_order_first_score_and_all_concepts() {
+        let mut groups = SearchResultGroups::default();
+        groups.push(named_result(
+            "Exact",
+            1.0,
+            vec![concept(1, None, "Condition")],
+        ));
+        groups.push(named_result(
+            "Other",
+            0.8,
+            vec![concept(2, None, "Condition")],
+        ));
+        groups.push(named_result(
+            "EXACT",
+            0.9,
+            vec![concept(3, None, "Condition")],
+        ));
+        let results = groups.into_results();
+        assert_eq!(results.len(), 2);
+        assert_eq!(results[0].concept_name, "Exact");
+        assert_eq!(results[0].score, Some(1.0));
+        assert_eq!(
+            results[0]
+                .concepts
+                .iter()
+                .map(|c| c.concept_id)
+                .collect::<Vec<_>>(),
+            vec![1, 3]
+        );
+        assert_eq!(results[1].concept_name, "Other");
+    }
+
+    #[test]
+    fn indexed_grouping_matches_original_scan_when_names_change_and_collide() {
+        // Names can differ from the surviving standard concept after filtering.
+        let mut standard = concept(10, Some("S"), "Condition");
+        standard.concept_name = "Canonical".into();
+        let candidates = [
+            named_result("Alias", 0.9, vec![concept(1, None, "Condition")]),
+            named_result("Alias", 0.8, vec![standard.clone()]),
+            named_result("Canonical", 1.0, vec![standard]),
+            named_result("ALIAS", 0.7, vec![concept(2, None, "Condition")]),
+            named_result("Other", 0.6, vec![concept(3, None, "Condition")]),
+        ];
+        // Exercise both collision orders, revisiting old/new names, and duplicates.
+        for mut sequence in 0..candidates.len().pow(5) {
+            let mut expected: Vec<SearchResponse> = Vec::new();
+            let mut actual = SearchResultGroups::default();
+            for _ in 0..5 {
+                let mut incoming = candidates[sequence % candidates.len()].clone();
+                sequence /= candidates.len();
+                actual.push(incoming.clone());
+                let mut found = false;
+                for existing in &mut expected {
+                    if existing.concept_name_lower == incoming.concept_name_lower {
+                        existing.append_concepts(&mut incoming.concepts);
+                        found = true;
+                    }
+                }
+                if !found {
+                    expected.push(incoming);
+                }
+            }
+            assert_eq!(
+                serde_json::to_value(actual.into_results()).unwrap(),
+                serde_json::to_value(expected).unwrap(),
+            );
+        }
+    }
+
+    #[test]
+    fn mapping_sources_are_unique_across_collections_and_exclude_standard_concepts() {
+        let main = vec![result(
+            0.8,
+            vec![
+                concept(1, None, "Condition"),
+                concept(2, Some("S"), "Condition"),
+                concept(3, Some("s"), "Condition"),
+            ],
+        )];
+        let synonyms = vec![result(
+            0.9,
+            vec![
+                concept(1, None, "Condition"),
+                concept(4, Some("C"), "Condition"),
+            ],
+        )];
+        let mut ids = non_standard_source_ids(&main, &synonyms);
+        ids.sort_unstable();
+        assert_eq!(ids, vec![1, 4]);
+        assert!(non_standard_source_ids(&[], &[]).is_empty());
+    }
+
+    #[test]
+    fn batched_mappings_preserve_best_scores_filters_counts_and_limit() {
+        let parameters = Query::<Parameters>::from_query("q=test&domain_id=Condition").unwrap();
+        let mappings = HashMap::from([
+            (
+                1,
+                vec![
+                    concept(10, Some("S"), "Condition"),
+                    concept(11, Some("S"), "Drug"),
+                ],
+            ),
+            (
+                2,
+                vec![
+                    concept(10, Some("S"), "Condition"),
+                    concept(12, Some("S"), "Condition"),
+                ],
+            ),
+        ]);
+        let counts = HashMap::from([(10, 123), (12, 456)]);
+        let mut concepts = HashMap::new();
+        process_search_results(
+            vec![
+                result(0.7, vec![concept(1, None, "Condition")]),
+                result(0.8, vec![concept(10, Some("S"), "Condition")]),
+                result(0.6, vec![concept(13, Some("S"), "Condition")]),
+                result(1.0, vec![concept(99, None, "Condition")]),
+            ],
+            &mut concepts,
+            &parameters,
+            &counts,
+            &mappings,
+            2,
+        );
+        assert_eq!(concepts.len(), 2);
+        assert_eq!(concepts[&10].1, 0.8);
+        assert!(concepts.contains_key(&13));
+        process_search_results(
+            vec![result(
+                0.9,
+                vec![concept(2, None, "Condition"), concept(1, None, "Condition")],
+            )],
+            &mut concepts,
+            &parameters,
+            &counts,
+            &mappings,
+            2,
+        );
+        assert_eq!(concepts.len(), 2);
+        assert_eq!(concepts[&10].1, 0.9);
+        assert_eq!(concepts[&12].1, 0.9);
+        assert_eq!(concepts[&10].0.record_count, 123);
+        assert_eq!(concepts[&12].0.record_count, 456);
+    }
 }

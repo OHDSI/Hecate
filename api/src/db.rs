@@ -326,24 +326,26 @@ async fn get_concept_ancestors(
     Ok(results)
 }
 
-pub async fn map_to_standard(client: &Client, concept_id: i32) -> Result<Vec<Concept>, PgError> {
-    let stmt = sql(include_str!("../sql/select_concepts_by_relation.sql"));
-    let stmt = client.prepare(&stmt).await?;
-
-    let results = client
-        .query(&stmt, &[&concept_id, &"Maps to"])
-        .await?
-        .iter()
-        .map(|row| Concept::from_row(row.clone()))
-        .collect::<Result<Vec<Concept>, _>>()?
-        .into_iter()
-        .filter(|concept| {
-            concept
-                .standard_concept
-                .as_ref()
-                .is_some_and(|sc| sc.eq_ignore_ascii_case("S"))
-        })
-        .collect::<Vec<Concept>>();
-
-    Ok(results)
+pub async fn map_to_standard_batch(
+    client: &Client,
+    concept_ids: &[i32],
+) -> Result<HashMap<i32, Vec<Concept>>, PgError> {
+    let mut mappings: HashMap<i32, Vec<Concept>> = HashMap::new();
+    if concept_ids.is_empty() {
+        return Ok(mappings);
+    }
+    let stmt = sql(include_str!("../sql/select_standard_concepts_batch.sql"));
+    let stmt = client.prepare_cached(&stmt).await?;
+    for row in client.query(&stmt, &[&concept_ids]).await? {
+        let source_id = row.get("source_concept_id");
+        let concept = Concept::from_row(row)?;
+        if concept
+            .standard_concept
+            .as_deref()
+            .is_some_and(|sc| sc.eq_ignore_ascii_case("S"))
+        {
+            mappings.entry(source_id).or_default().push(concept);
+        }
+    }
+    Ok(mappings)
 }
