@@ -1,6 +1,7 @@
 # Agent Guidelines for Rust Code Quality
 
-This document provides guidelines for maintaining high-quality Rust code. These rules MUST be followed by all AI coding agents and contributors.
+This document provides guidelines for maintaining high-quality Rust code. These rules MUST be followed by all AI coding
+agents and contributors.
 
 ## Your Core Principles
 
@@ -13,35 +14,14 @@ All code you write MUST be fully optimized.
 - following proper style conventions for Rust (e.g. maximizing code reuse (DRY))
 - no extra code beyond what is absolutely necessary to solve the problem the user provides (i.e. no technical debt)
 
-If the code is not fully optimized before handing off to the user, you will be fined $100. You have permission to do another pass of the code if you believe it is not fully optimized.
-
-## Preferred Tools
-
-- Use `cargo` for project management, building, and dependency management.
-- Use `indicatif` to track long-running operations with progress bars. The message should be contextually sensitive.
-- Use `serde` with `serde_json` for JSON serialization/deserialization.
-- When reporting errors to the console, use `tracing::error!` or `log::error!` instead of `println!`.
-- If designing applications with a web-based front end interface, e.g. compiling to WASM or using `dioxus`:
-  - All deep computation **MUST** occur within Rust processes (i.e. the WASM binary or the `dioxus` app Rust process). **NEVER** use JavaScript for deep computation.
-  - The front-end **MUST** use Pico CSS and vanilla JavaScript. **NEVER** use jQuery or any component-based frameworks such as React.
-  - The front-end should prioritize speed and common HID guidelines.
-  - The app should use adaptive light/dark themes by default, with a toggle to switch the themes.
-  - The typography/theming of the application **MUST** be modern and unique, similar to that of popular single-page web/mobile. **ALWAYS** add an appropriate font for headers and body text. You may reference fonts from Google Fonts.
-  - **NEVER** use the Pico CSS defaults as-is: a separate CSS/SCSS file is encouraged. The design **MUST** logically complement the semantics of the application use case.
-  - **ALWAYS** rebuild the WASM binary if any underlying Rust code that affects it is touched.
-- For data processing:
-  - **ALWAYS** use `polars` instead of other data frame libraries for tabular data manipulation.
-  - If a `polars` dataframe will be printed, **NEVER** simultaneously print the number of entries in the dataframe nor the schema as it is redundant.
-  - **NEVER** ingest more than 10 rows of a data frame at a time. Only analyze subsets of data to avoid overloading your memory context.
+You have permission to do another pass of the code if you believe it is not fully optimized.
 
 ## Code Style and Formatting
 
 - **MUST** use meaningful, descriptive variable and function names
 - **MUST** follow Rust API Guidelines and idiomatic Rust conventions
-- **MUST** use 4 spaces for indentation (never tabs)
 - **NEVER** use emoji, or unicode that emulates emoji (e.g. ✓, ✗).
 - Use snake_case for functions/variables/modules, PascalCase for types/traits, SCREAMING_SNAKE_CASE for constants
-- Limit line length to 100 characters (rustfmt default)
 
 ## Type System
 
@@ -76,14 +56,12 @@ If the code is not fully optimized before handing off to the user, you will be f
 - Use builder pattern for complex struct construction
 - Make fields private by default; provide accessor methods when needed
 
-
 ## Imports and Dependencies
 
 - **MUST** avoid wildcard imports (`use module::*`) except for preludes and prelude re-exports
 - **MUST** document dependencies in `Cargo.toml` with version constraints
-- Use `cargo` for dependency management
 - Organize imports: standard library, external crates, local modules
-- Use `rustfmt` to automate import formatting
+- Use `rustfmt` to automate formatting
 
 ## Rust Best Practices
 
@@ -109,22 +87,14 @@ If the code is not fully optimized before handing off to the user, you will be f
 - **MUST** prefer `tokio` for async runtime in async applications
 - **MUST** use `rayon` for CPU-bound parallelism
 - Avoid `Mutex` when `RwLock` or lock-free alternatives are appropriate
-- Use channels (`mpsc`, `crossbeam`) for message passing
 
 ## Security
 
 - **NEVER** store secrets, API keys, or passwords in code. Only store them in `.env`.
-  - Ensure `.env` is declared in `.gitignore`.
+- Ensure `.env` is declared in `.gitignore`.
 - **MUST** use environment variables for sensitive configuration via `dotenvy` or `std::env`
 - **NEVER** log sensitive information (passwords, tokens, PII)
 - Use `secrecy` crate for sensitive data types
-
-## Version Control
-
-- **MUST** write clear, descriptive commit messages
-- **NEVER** commit commented-out code; delete it
-- **NEVER** commit debug `println!` statements or `dbg!` macros
-- **NEVER** commit credentials or sensitive data
 
 ## Tools
 
@@ -133,7 +103,7 @@ If the code is not fully optimized before handing off to the user, you will be f
 - **MUST** ensure code compiles with no warnings (use `-D warnings` flag in CI, not `#![deny(warnings)]` in source)
 - Use `cargo` for building, and dependency management
 
-## Before Committing
+## Before considering work done
 
 - [ ] No compiler warnings (`cargo build`)
 - [ ] Clippy passes (`cargo clippy -- -D warnings`)
