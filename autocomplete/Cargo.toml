@@ -5,10 +5,10 @@ edition = "2024"
 
 [dependencies]
 actix-cors = "0.7.2"
-actix-web = "4.15.0"
+actix-web = "4.18.1"
 anyhow = "1.0"
 env_logger = "0.11.11"
-indicium = "0.6.10"
+indicium = "0.6.11"
 log = "0.4.34"
 serde = { version = "1.0.229", features = ["derive"] }
-tokio = { version = "1.53.1", features = ["rt", "rt-multi-thread", "macros"] }
+tokio = { version = "1.54.1", features = ["rt", "rt-multi-thread", "macros"] }
